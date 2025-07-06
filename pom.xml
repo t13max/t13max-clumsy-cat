@@ -5,12 +5,16 @@
   <groupId>com.t13max.kdb</groupId>
   <artifactId>t13max-kdb</artifactId>
   <version>0.0.1</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
   <name>t13max-kdb</name>
   <url>http://maven.apache.org</url>
+    <modules>
+        <module>kdb-core</module>
+      <module>kdb-generate</module>
+    </modules>
 
-  <properties>
+    <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
