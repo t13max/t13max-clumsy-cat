@@ -1,0 +1,21 @@
+kdb:
+  a: a
+  b: b
+
+bean:
+  - name: Human
+    variable:
+      - name: id
+        type: long
+        comment: 玩家id
+      - name: level
+        type: int
+        comment: 等级
+
+
+table:
+  - name: humans
+    value: Human
+    lock: roleLock
+    aaa: a
+    bbb: b
