@@ -1,13 +1,12 @@
 package com.t13max.kdb.serial
 
+import com.t13max.kdb.action.SerialTask
+import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.utils.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import com.t13max.kdb.utils.Utils
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * 串行执行器
@@ -16,16 +15,42 @@ import kotlinx.coroutines.withTimeoutOrNull
  * @Author t13max
  * @Date 13:53 2025/6/26
  */
-class SerialExecutor<E : Enum<E>>() {
+
+class SerialExecutor(var active: Boolean) {
 
     //channel集合 长时间不用需要手动关闭掉
-    private val actionChannels = mutableMapOf<E, MutableMap<Long, Channel<suspend () -> Unit>>>()
+    private val actionChannels = mutableMapOf<String, MutableMap<Long, ChannelWrapper>>()
 
     // 避免并发创建channel
     private val mutex = Mutex()
 
-    //scope
-    private val sharedScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    init {
+
+        active = true
+
+        Utils.serialScope.launch {
+            while (true) {
+                delay(60_000) // 每分钟检查一次
+                val now = System.currentTimeMillis()
+                mutex.lock()
+                try {
+                    actionChannels.forEach { (scope, map) ->
+                        val idsToRemove = mutableListOf<Long>()
+                        map.forEach { (id, wrapper) ->
+                            if (!wrapper.channel.isClosedForSend && now - wrapper.lastActiveTime > 5 * 60 * 1000) {
+                                wrapper.channel.close()
+                                idsToRemove.add(id)
+                            }
+                        }
+                        idsToRemove.forEach { map.remove(it) }
+                        if (map.isEmpty()) actionChannels.remove(scope)
+                    }
+                } finally {
+                    mutex.unlock()
+                }
+            }
+        }
+    }
 
     /**
      * 提供给kotlin的提交任务的方法
@@ -33,8 +58,8 @@ class SerialExecutor<E : Enum<E>>() {
      * @Author t13max
      * @Date 13:53 2025/6/26
      */
-    suspend fun submit(type: E, id: Long, action: suspend () -> Unit) {
-        getOrCreateChannel(type, id).send(action)
+    suspend fun submit(serialTask: SerialTask) {
+        getOrCreateChannel(serialTask.scope, serialTask.id).channel.send(serialTask)
     }
 
     /**
@@ -43,11 +68,9 @@ class SerialExecutor<E : Enum<E>>() {
      * @Author t13max
      * @Date 13:53 2025/6/26
      */
-    fun submit(type: E, id: Long, runnable: Runnable) {
-        sharedScope.launch {
-            getOrCreateChannel(type, id).send {
-                runnable.run()
-            }
+    fun submit4j(serialTask: SerialTask) {
+        Utils.serialScope.launch {
+            submit(serialTask)
         }
     }
 
@@ -57,45 +80,75 @@ class SerialExecutor<E : Enum<E>>() {
      * @Author t13max
      * @Date 13:53 2025/6/26
      */
-    private suspend fun getOrCreateChannel(type: E, id: Long): Channel<suspend () -> Unit> {
+    private suspend fun getOrCreateChannel(scope: String, id: Long): ChannelWrapper {
 
         // 无锁快速返回
-        actionChannels[type]?.get(id)?.let { return it }
+        actionChannels[scope]?.get(id)?.let { return it }
 
         mutex.lock()
 
         try {
 
             //根据type取
-            val map = actionChannels.getOrPut(type) { mutableMapOf() }
+            val map = actionChannels.getOrPut(scope) { mutableMapOf() }
 
             //再根据id拿
             return map.getOrPut(id) {
+
                 //新建无界channel
-                val channel = Channel<suspend () -> Unit>(Channel.UNLIMITED)
+                val channel = Channel<SerialTask>(Channel.UNLIMITED)
+
+                val channelWrapper = ChannelWrapper(channel, System.currentTimeMillis())
                 //启动一个协程 从这个channel里不断拿到任务区执行
-                sharedScope.launch {
+                Utils.serialScope.launch {
 
                     //这里的for会不断地拿
-                    for (action in channel) {
+                    for (task in channel) {
+
+                        channelWrapper.lastActiveTime = System.currentTimeMillis()
+
+                        //拿到scope锁
+                        val lock = LockCache.getLock(task.scope, task.id)
+
+                        //锁住 这里加锁是为了防止与事务那边同时执行
+                        lock.lock()
+
                         try {
 
-                            //暂时写死5秒超时
                             withTimeoutOrNull(5000) {
-                                //执行
-                                action()
-                            } ?: Log.SERIAL.warn("action timeout! type=$type, id=$id")
+                                if (task.isIo) {
+                                    //在IO线程执行 挂起等待
+                                    withContext(Utils.virtualThreadDispatcher) {
+                                        task.run()
+                                    }
+                                } else {
+                                    //直接执行
+                                    task.run()
+                                }
+                            } ?: Log.SERIAL.warn("action timeout! scope=$scope, id=$id")
                         } catch (e: Exception) {
                             //记录异常
-                            Log.SERIAL.error("action failed! type=$type, id=$id, message=${e.message}", e)
+                            Log.SERIAL.error("action failed! scope=$scope, id=$id, message=${e.message}", e)
+                        } finally {
+                            lock.unlock()
                         }
                     }
                 }
-                channel
+                channelWrapper
             }
         } finally {
             mutex.unlock()
         }
     }
 
+    fun shutdown() {
+        //sharedScope.coroutineContext.cancel() // 会终止所有 launch 的协程，包括定时清理
+    }
+
 }
+
+
+private data class ChannelWrapper(
+    val channel: Channel<SerialTask>,
+    var lastActiveTime: Long
+)

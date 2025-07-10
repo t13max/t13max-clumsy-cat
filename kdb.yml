@@ -16,6 +16,7 @@ bean:
 table:
   - name: humans
     value: Human
-    lock: roleLock
+    comment: 角色表
+    lock: role
     aaa: a
     bbb: b

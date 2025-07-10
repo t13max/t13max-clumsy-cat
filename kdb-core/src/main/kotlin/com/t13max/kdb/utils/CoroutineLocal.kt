@@ -34,7 +34,11 @@ class CoroutineLocal<T>(private val default: () -> T) {
         }
     }
 
-    fun update(value: T, context: CoroutineContext): CoroutineContext {
-        return context + CoroutineLocalElement(key, value)
+    fun update(value: T?, context: CoroutineContext): CoroutineContext {
+        return if (value == null) {
+            context.minusKey(key)
+        } else {
+            context + CoroutineLocalElement(key, value)
+        }
     }
 }

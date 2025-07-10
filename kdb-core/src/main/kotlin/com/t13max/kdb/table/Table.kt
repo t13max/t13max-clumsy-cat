@@ -8,6 +8,9 @@ import com.t13max.kdb.conf.TableConf
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock
 import com.t13max.kdb.storage.IStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 
 /**
  * 数据表 从这里拿数据
@@ -33,7 +36,7 @@ class Table<V : IData>(
      * @Author t13max
      * @Date 18:56 2025/7/8
      */
-    suspend fun <V : IData> get(id: Long): V? {
+    suspend fun get(id: Long): V? {
 
         val lock: RecordLock = LockCache.getLock(tableConf.name, id)
 
@@ -42,17 +45,22 @@ class Table<V : IData>(
         try {
             var record = cache.get(id)
             if (record == null) {
-                val value = storage.findById(clazz, id)
-                record = Record(this, value)
+
+                val outerTable = this@Table
+                //IO操作 切换到IO线程执行
+                record = withContext(Dispatchers.IO) {
+                    val value = storage.findById(clazz, id)
+                    Record(outerTable, value)
+                }
             }
-            return record.value as V
+            return record.value
         } finally {
             //释放吗?
             lock.unlock()
         }
     }
 
-    suspend fun <V : IData> select(id: Long): V? {
+    suspend fun select(id: Long): V? {
 
         val lock: RecordLock = LockCache.getLock(tableConf.name, id)
 
@@ -66,7 +74,7 @@ class Table<V : IData>(
             record
         }
 
-        return result.value as V
+        return result.value
     }
 
     /**
@@ -75,8 +83,18 @@ class Table<V : IData>(
      * @Author t13max
      * @Date 18:56 2025/7/8
      */
-    suspend fun <V : IData> insert(value: V) {
-        // 实现插入逻辑
+    suspend fun insert(value: V) {
+
+        val lock: RecordLock = LockCache.getLock(tableConf.name, value.id)
+
+        lock.lock()
+
+        try {
+            val record: Record<V> = Record(value)
+            cache.add(record as Record<V?>?)
+        } finally {
+            lock.unlock()
+        }
     }
 
     /**

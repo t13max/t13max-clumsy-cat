@@ -1,6 +1,7 @@
 package com.t13max.kdb.lock
 
 import ReentrantMutex
+import com.t13max.kdb.utils.CoroutineReadWriteLock
 import kotlinx.coroutines.sync.Mutex
 
 /**
@@ -12,11 +13,15 @@ import kotlinx.coroutines.sync.Mutex
  */
 class LockCache {
 
-    companion object{
+    companion object {
 
         private val cacheMap = mutableMapOf<String, MutableMap<Long, RecordLock>>()
 
+        //拿全局唯一锁的锁
         private val lock = Mutex()
+
+        //刷库读写锁
+        private val flushLock = CoroutineReadWriteLock()
 
         suspend fun getLock(name: String, id: Long): RecordLock {
 
@@ -32,6 +37,11 @@ class LockCache {
                 lock.unlock()
             }
         }
+
+        fun flushLock(): CoroutineReadWriteLock {
+            return flushLock
+        }
+
     }
 
 }
