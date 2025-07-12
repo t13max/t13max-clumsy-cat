@@ -16,7 +16,7 @@ public class LogKey {
 		return null;
 	}
 
-	public final Bean getXBean() {
+	public final Bean getBean() {
 		return bean;
 	}
 

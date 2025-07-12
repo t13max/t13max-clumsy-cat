@@ -1,4 +1,4 @@
-package com.t13max.kdb.action;
+package com.t13max.kdb.serial;
 
 import com.t13max.kdb.consts.Const;
 import lombok.Getter;

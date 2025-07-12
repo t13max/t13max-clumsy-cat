@@ -1,7 +1,5 @@
 package com.t13max.kdb.bean;
 
-import com.t13max.kdb.log.LogKey;
-import com.t13max.kdb.log.LogNotify;
 
 /**
  * @author t13max
@@ -26,11 +24,5 @@ public abstract class Bean implements IBean {
     @Override
     public String getVarName() {
         return this.varName;
-    }
-
-    public void logNotify(LogNotify notify) {
-        if (null != parent) {
-            parent.logNotify(notify.push(new LogKey(parent, getVarName())));
-        }
     }
 }

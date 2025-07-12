@@ -1,7 +1,6 @@
 package com.t13max.kdb.bean;
 
 import com.t13max.kdb.consts.State;
-import com.t13max.kdb.log.LogNotify;
 import lombok.Getter;
 
 /**
@@ -31,8 +30,4 @@ public class Record<V extends IData> extends Bean {
         return value.getId();
     }
 
-    @Override
-    public void logNotify(LogNotify notify) {
-        super.logNotify(notify);
-    }
 }

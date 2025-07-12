@@ -1,4 +1,4 @@
-package com.t13max.kdb;
+package com.t13max.kdb.transaction;
 
 import com.t13max.kdb.log.IVarLog;
 import com.t13max.kdb.log.LogKey;
@@ -20,14 +20,14 @@ public class Savepoint {
 
     private final List<IVarLog<?>> orderList = new ArrayList<>();
 
-    int commit() {
+    public int commit() {
         for (IVarLog<?> varLog : orderList) {
             varLog.commit();
         }
         return orderList.size();
     }
 
-    int rollback() {
+    public int rollback() {
         for (IVarLog<?> varLog : orderList) {
             varLog.rollback();
         }

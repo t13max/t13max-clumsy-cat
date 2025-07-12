@@ -1,16 +1,16 @@
-package com.t13max.kdb
+package com.t13max.kdb.executor
 
 import com.t13max.kdb.bean.IData
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.withTimeoutOrNull
 import com.t13max.kdb.bean.Record
 import com.t13max.kdb.consts.State
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.utils.Utils
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * 自动存库执行器
@@ -22,21 +22,30 @@ class AutoSaveExecutor() {
 
     companion object {
 
-        val changeChannel: Channel<Record<IData>> = Channel(Channel.UNLIMITED)
+        val changeChannel: Channel<Record<out IData>> = Channel(Channel.Factory.UNLIMITED)
 
         private val saveMap = mutableMapOf<State, IData>()
 
         fun <T : IData> recordChange(record: Record<T>) {
             //提交到channel
-            Utils.autoSaveScope.launch {
-                changeChannel.send(record as Record<IData>)
+            Utils.Companion.autoSaveScope.launch {
+                changeChannel.send(record)
+            }
+        }
+
+        fun <T : IData> batchRecordChange(recordList: List<Record<T>>) {
+            //提交到channel
+            Utils.Companion.autoSaveScope.launch {
+                for (record in recordList) {
+                    changeChannel.send(record)
+                }
             }
         }
     }
 
     init {
 
-        Utils.autoSaveScope.launch {
+        Utils.Companion.autoSaveScope.launch {
 
             // 协程取消时自动退出
             while (isActive) {
@@ -92,6 +101,6 @@ class AutoSaveExecutor() {
     }
 
     fun shutdown() {
-        Utils.autoSaveScope.cancel()
+        Utils.autoSaveScope.coroutineContext[Job]?.cancel()
     }
 }

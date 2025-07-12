@@ -1,6 +1,5 @@
 package com.t13max.kdb.serial
 
-import com.t13max.kdb.action.SerialTask
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.utils.Log
 import com.t13max.kdb.utils.Utils

@@ -1,4 +1,4 @@
-package com.t13max.kdb
+package com.t13max.kdb.transaction
 
 import com.t13max.kdb.utils.Log
 
@@ -54,13 +54,12 @@ open class Procedure {
     }
 
     fun submit() {
-
+        TransactionExecutor.submit(this)
     }
 
     fun execute() {
-
+        TransactionExecutor.execute(this)
     }
-
 
     private suspend fun verify() {
         var current = Transaction.current()

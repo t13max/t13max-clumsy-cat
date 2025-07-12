@@ -1,8 +1,6 @@
 package com.t13max.kdb.log;
 
 
-import com.t13max.kdb.utils.VarLogUtils;
-
 public abstract class IntLog extends Note implements IVarLog<Integer> {
 
 	protected LogKey logkey;
@@ -16,7 +14,7 @@ public abstract class IntLog extends Note implements IVarLog<Integer> {
 
 	@Override
 	public void commit() {
-		VarLogUtils.logNotify(logkey.getXBean(), new LogNotify(logkey, this));
+
 	}
 
 	@Override

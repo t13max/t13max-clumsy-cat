@@ -1,8 +1,6 @@
 package com.t13max.kdb.log;
 
 
-import com.t13max.kdb.utils.VarLogUtils;
-
 public abstract class LongLog extends Note implements IVarLog<Long> {
 
 	protected LogKey logkey;
@@ -16,6 +14,6 @@ public abstract class LongLog extends Note implements IVarLog<Long> {
 
 	@Override
 	public void commit() {
-		VarLogUtils.logNotify(logkey.getXBean(), new LogNotify(logkey, this));
+		logkey.getBean().onChange();
 	}
 }

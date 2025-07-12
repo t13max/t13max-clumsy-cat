@@ -1,6 +1,6 @@
-package com.t13max.kdb;
+package com.t13max.kdb.task;
 
-import com.t13max.kdb.action.SerialTask;
+import com.t13max.kdb.serial.SerialTask;
 
 /**
  * @author t13max

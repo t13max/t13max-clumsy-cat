@@ -1,4 +1,6 @@
-package com.t13max.kdb;
+package com.t13max.kdb.procedure;
+
+import com.t13max.kdb.transaction.Procedure;
 
 /**
  * @author t13max

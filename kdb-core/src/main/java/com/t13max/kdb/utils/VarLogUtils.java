@@ -12,7 +12,5 @@ import lombok.experimental.UtilityClass;
 public class VarLogUtils {
 
 
-    public static void logNotify(Bean kbean, LogNotify notify) {
-        kbean.logNotify(notify);
-    }
+
 }
