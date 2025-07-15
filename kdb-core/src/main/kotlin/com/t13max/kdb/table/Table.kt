@@ -4,12 +4,15 @@ import com.t13max.kdb.bean.Bean
 import com.t13max.kdb.bean.IData
 import com.t13max.kdb.bean.Record
 import com.t13max.kdb.cache.CoroutineSafeCache
+import com.t13max.kdb.cache.DefaultTableCache
 import com.t13max.kdb.conf.TableConf
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock
 import com.t13max.kdb.storage.IStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 
 /**
@@ -19,13 +22,13 @@ import kotlinx.coroutines.withContext
  * @author t13max
  * @since 18:50 2025/7/8
  */
-class Table<V : IData>(
+open class Table<V : IData>(
     //类型
     private val clazz: Class<V>,
     //配置
     private val tableConf: TableConf,
     //表缓存
-    private val cache: CoroutineSafeCache<V>,
+    private val cache : CoroutineSafeCache<V>,
     //存储层
     private val storage: IStorage,
 ) : Bean(null, null) {
@@ -53,7 +56,7 @@ class Table<V : IData>(
                     Record(outerTable, value)
                 }
             }
-            return record.value
+            return setJob(record.value)
         } finally {
             //释放吗?
             lock.unlock()
@@ -74,7 +77,7 @@ class Table<V : IData>(
             record
         }
 
-        return result.value
+        return setJob(result.value)
     }
 
     /**
@@ -92,6 +95,7 @@ class Table<V : IData>(
         try {
             val record: Record<V> = Record(value)
             cache.add(record as Record<V?>?)
+            setJob(value)
         } finally {
             lock.unlock()
         }
@@ -105,6 +109,14 @@ class Table<V : IData>(
      */
     suspend fun <V : IData> delete(id: Long) {
         // 实现删除逻辑
+    }
+
+    suspend fun <V : IData> setJob(v: V?): V? {
+        if (v == null) {
+            return null
+        }
+        val job = currentCoroutineContext()[Job]
+        return v.setJob(job)
     }
 
     override fun getId(): Long? {

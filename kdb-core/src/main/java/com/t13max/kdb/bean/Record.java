@@ -1,6 +1,5 @@
 package com.t13max.kdb.bean;
 
-import com.t13max.kdb.consts.State;
 import lombok.Getter;
 
 /**
@@ -13,8 +12,6 @@ public class Record<V extends IData> extends Bean {
     public static final String RECORD_VAR_NAME = "value";
 
     private final V value;
-
-    private State state;
 
     public Record(V value) {
         this(null, value);

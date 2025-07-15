@@ -1,7 +1,7 @@
 package com.t13max.kdb.exception;
 
 /**
- * 异常
+ * Kdb异常
  *
  * @author t13max
  * @since 16:55 2025/7/7
@@ -28,7 +28,7 @@ public class KdbException extends RuntimeException {
     }
 
     /**
-     * 重写 防止每次都生成堆栈信息
+     * 重写 防止每次都生成堆栈信息?
      *
      * @Author t13max
      * @Date 16:55 2025/7/7

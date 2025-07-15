@@ -14,6 +14,6 @@ public abstract class LongLog extends Note implements IVarLog<Long> {
 
 	@Override
 	public void commit() {
-		logkey.getBean().onChange();
+		logkey.getData().onChange();
 	}
 }

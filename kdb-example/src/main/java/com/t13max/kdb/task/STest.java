@@ -13,7 +13,7 @@ public class STest extends SerialTask {
     }
 
     @Override
-    public void run() {
-
+    protected boolean process() {
+        return false;
     }
 }

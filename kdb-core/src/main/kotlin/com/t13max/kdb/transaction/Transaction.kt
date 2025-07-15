@@ -5,8 +5,11 @@ import com.t13max.kdb.bean.Record
 import com.t13max.kdb.executor.AutoSaveExecutor
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock
+import com.t13max.kdb.log.LogKey
 import com.t13max.kdb.utils.CoroutineLocal
 import com.t13max.kdb.utils.Log
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -62,8 +65,12 @@ class Transaction {
      * @Date 11:02 2025/7/12
      */
     suspend fun perform(procedure: Procedure) {
+
         try {
-            LockCache.flushLock().readLock()
+
+            val job = currentJob()
+
+            LockCache.flushLock().readLock(job)
 
             if (procedure.call()) {
                 realCommit()
@@ -74,8 +81,8 @@ class Transaction {
             Log.TRANSACT.error("perform exception! throwable={}", throwable)
             lastRollback()
         } finally {
-            finish()
-            LockCache.flushLock().readUnlock()
+            finish(procedure)
+            LockCache.flushLock().readUnlock(procedure.getJob())
         }
     }
 
@@ -125,7 +132,11 @@ class Transaction {
      * @Author t13max
      * @Date 11:03 2025/7/12
      */
-    private fun finish() {
+    private fun finish(procedure: Procedure) {
+
+        //移除事务
+        TransactionExecutor.removeTransaction(procedure.getJob())
+
         //把事务缓存里的数据 变动的 扔进异步存库
 
         val recordList: List<Record<IData>> = recordCache.values
@@ -147,4 +158,11 @@ class Transaction {
         return (map[id] as? Record<V>)?.value
     }
 
+    suspend fun currentJob(): Job? {
+        return currentCoroutineContext()[Job]
+    }
+
+    fun addLog(logKey: LogKey) {
+        savepoint.addLog(logKey)
+    }
 }

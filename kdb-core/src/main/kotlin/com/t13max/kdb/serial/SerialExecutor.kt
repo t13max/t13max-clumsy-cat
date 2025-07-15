@@ -15,7 +15,7 @@ import kotlinx.coroutines.sync.Mutex
  * @Date 13:53 2025/6/26
  */
 
-class SerialExecutor(var active: Boolean) {
+class SerialExecutor() {
 
     //channel集合 长时间不用需要手动关闭掉
     private val actionChannels = mutableMapOf<String, MutableMap<Long, ChannelWrapper>>()
@@ -25,10 +25,8 @@ class SerialExecutor(var active: Boolean) {
 
     init {
 
-        active = true
-
         Utils.serialScope.launch {
-            while (true) {
+            while (isActive) {
                 delay(60_000) // 每分钟检查一次
                 val now = System.currentTimeMillis()
                 mutex.lock()
@@ -141,7 +139,7 @@ class SerialExecutor(var active: Boolean) {
     }
 
     fun shutdown() {
-        //sharedScope.coroutineContext.cancel() // 会终止所有 launch 的协程，包括定时清理
+        Utils.serialScope.coroutineContext[Job]?.cancel()
     }
 
 }

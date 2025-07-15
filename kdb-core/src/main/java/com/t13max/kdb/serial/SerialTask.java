@@ -12,10 +12,13 @@ import lombok.Getter;
 @Getter
 public abstract class SerialTask implements Runnable {
 
+    //唯一id
     protected final long id;
 
+    //是否存在IO操作
     protected final boolean io;
 
+    //作用域
     protected final String scope;
 
     protected SerialTask(long id) {
@@ -32,5 +35,32 @@ public abstract class SerialTask implements Runnable {
         this.scope = scope;
     }
 
+    @Override
+    public final void run() {
+        try {
+            if (process()) {
+                commit();
+                return;
+            }
+            rollback();
+        } catch (Throwable throwable) {
+            rollback();
+        } finally {
+            finished();
+        }
+    }
 
+    private void finished() {
+
+    }
+
+    private void rollback() {
+
+    }
+
+    private void commit() {
+
+    }
+
+    protected abstract boolean process();
 }

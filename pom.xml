@@ -22,6 +22,7 @@
         <log4j.version>2.17.2</log4j.version>
         <kotlin.version>1.9.22</kotlin.version>
         <kotlin.coroutines.version>1.8.0</kotlin.coroutines.version>
+        <snakeyaml.version>2.2</snakeyaml.version>
     </properties>
 
     <dependencies>

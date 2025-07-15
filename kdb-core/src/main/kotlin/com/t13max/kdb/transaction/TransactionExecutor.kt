@@ -3,6 +3,7 @@ package com.t13max.kdb.transaction
 import com.t13max.kdb.utils.Utils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 事务执行器
@@ -13,6 +14,9 @@ import kotlinx.coroutines.launch
 class TransactionExecutor {
 
     companion object {
+
+        //事务集合 总感觉不太好
+        private val transactionMap = ConcurrentHashMap<Job, Transaction>()
 
         /**
          * 提交一个事务
@@ -34,5 +38,25 @@ class TransactionExecutor {
 
             submit(procedure)
         }
+
+        fun putTransaction(job: Job, transaction: Transaction) {
+            transactionMap.put(job, transaction)
+        }
+
+        fun removeTransaction(job: Job?): Transaction? {
+            if (job == null) {
+                return null
+            }
+            return transactionMap.remove(job)
+        }
+
+        fun getTransaction(job: Job): Transaction? {
+            return transactionMap.get(job)
+        }
+
+    }
+
+    fun shutdown() {
+        Utils.transactionScope.coroutineContext[Job]?.cancel()
     }
 }

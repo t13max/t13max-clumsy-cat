@@ -33,4 +33,10 @@ public class Savepoint {
         }
         return orderList.size();
     }
+
+    public void addLog(LogKey logKey) {
+        IVarLog<?> varLog = logKey.create();
+        logMap.put(logKey, varLog);
+        orderList.add(varLog);
+    }
 }

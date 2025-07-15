@@ -2,9 +2,10 @@ package com.t13max.kdb.cache
 
 import com.t13max.kdb.bean.IData
 import com.t13max.kdb.bean.Record
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.t13max.kdb.utils.Utils
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 
@@ -19,11 +20,10 @@ class CoroutineSafeCache<V : IData>(private val cache: ITableCache<V>) {
 
     private val mutex = Mutex()
 
-    private var active = false
-
     init {
-        val job = CoroutineScope(Dispatchers.Default).launch {
-            while (active) {
+
+        val job = Utils.tableCacheScope.launch {
+            while (isActive) {
 
                 //定期清除
                 cache.clean()
@@ -33,12 +33,8 @@ class CoroutineSafeCache<V : IData>(private val cache: ITableCache<V>) {
         }
     }
 
-    fun init() {
-        active = true;
-    }
-
-    fun close() {
-        active = false;
+    fun shutdown() {
+        Utils.tableCacheScope.coroutineContext[Job]?.cancel()
     }
 
     suspend fun get(id: Long): Record<V?> {

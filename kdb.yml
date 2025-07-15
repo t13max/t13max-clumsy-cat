@@ -1,10 +1,11 @@
-kdb:
-  a: a
-  b: b
+
+a: 1
+b: 2
 
 bean:
   - name: Human
-    variable:
+    comment: "玩家"
+    var:
       - name: id
         type: long
         comment: 玩家id
@@ -18,5 +19,3 @@ table:
     value: Human
     comment: 角色表
     lock: role
-    aaa: a
-    bbb: b

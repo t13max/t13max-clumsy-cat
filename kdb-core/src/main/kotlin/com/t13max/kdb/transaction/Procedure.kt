@@ -1,6 +1,7 @@
 package com.t13max.kdb.transaction
 
 import com.t13max.kdb.utils.Log
+import kotlinx.coroutines.Job
 
 /**
  *
@@ -8,6 +9,8 @@ import com.t13max.kdb.utils.Log
  * @since 17:23 2025/7/10
  */
 open class Procedure {
+
+    protected var job = null;
 
     private var success = false
 
@@ -69,6 +72,10 @@ open class Procedure {
     @Throws(Exception::class)
     protected open fun process(): Boolean {
         return false
+    }
+
+    fun getJob(): Job? {
+        return job;
     }
 }
 

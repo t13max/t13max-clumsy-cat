@@ -1,23 +1,23 @@
 package com.t13max.kdb.log;
 
-import com.t13max.kdb.bean.Bean;
+import com.t13max.kdb.bean.IData;
 
 public class LogKey {
 
-	private final Bean bean;
+	private final IData data;
 	private final String varName;
 
-	public LogKey(Bean bean, String varName) {
-		this.bean = bean;
+	public LogKey(IData data, String varName) {
+		this.data = data;
 		this.varName = varName;
 	}
 
-	protected IVarLog create() {
+	public IVarLog<?> create(){
 		return null;
 	}
 
-	public final Bean getBean() {
-		return bean;
+	public final IData getData() {
+		return data;
 	}
 
 	public final String getVarName() {

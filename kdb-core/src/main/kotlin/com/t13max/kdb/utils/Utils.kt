@@ -8,7 +8,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import java.util.concurrent.Executors
 
 /**
- *
+ * 工具类
  * @author t13max
  * @since 16:04 2025/7/10
  */
@@ -27,6 +27,9 @@ class Utils {
 
         //自动存库
         val autoSaveScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+        //表缓存
+        val tableCacheScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     }
 }

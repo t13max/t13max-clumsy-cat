@@ -1,5 +1,7 @@
 package com.t13max.kdb.procedure;
 
+import com.t13max.kdb.bean.Human;
+import com.t13max.kdb.table.Humans;
 import com.t13max.kdb.transaction.Procedure;
 
 /**
@@ -17,6 +19,8 @@ public class PTest extends Procedure {
      */
     protected boolean process() throws Exception {
 
+        Human human = Humans.get(1);
+        human.setExp(111);
         return false;
     }
 

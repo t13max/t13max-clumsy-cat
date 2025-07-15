@@ -1,5 +1,6 @@
 package com.t13max.kdb.utils
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 
@@ -17,6 +18,8 @@ class CoroutineReadWriteLock {
     // 写锁（互斥）
     private val writeMutex = Mutex()
 
+    private val readOwner = mutableSetOf<Job>()
+
     // 读锁的释放信号（用于唤醒等待的写者）
     private val readFinished = Channel<Unit>(Channel.UNLIMITED)
 
@@ -27,9 +30,12 @@ class CoroutineReadWriteLock {
     private var waitingWriters = 0
 
     // 获取读锁
-    suspend fun readLock() {
+    suspend fun readLock(job: Job?) {
         stateMutex.lock()
         try {
+            if (job != null) {
+                readOwner.add(job)
+            }
             // 如果有写者等待，暂停新读者（避免写者饥饿）
             if (waitingWriters > 0) {
                 stateMutex.unlock()
@@ -43,9 +49,12 @@ class CoroutineReadWriteLock {
     }
 
     // 释放读锁
-    suspend fun readUnlock() {
+    suspend fun readUnlock(job: Job?) {
         stateMutex.lock()
         try {
+            if (job != null) {
+                readOwner.remove(job)
+            }
             if (--readers == 0 && waitingWriters > 0) {
                 // 唤醒一个等待的写者
                 readFinished.send(Unit)
@@ -85,5 +94,15 @@ class CoroutineReadWriteLock {
                 sent++
             }
         }
+    }
+
+    /**
+     * 判断当前是否持有flush读锁
+     *
+     * @Author t13max
+     * @Date 16:43 2025/7/15
+     */
+    fun hasReadLock(job: Job): Boolean {
+        return readOwner.contains(job)
     }
 }
