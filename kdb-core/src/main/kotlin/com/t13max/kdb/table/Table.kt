@@ -28,14 +28,15 @@ open class Table<V : IData>(
     //配置
     private val tableConf: TableConf,
     //表缓存
-    private val cache : CoroutineSafeCache<V>,
+    private val cache: CoroutineSafeCache<V>,
     //存储层
     private val storage: IStorage,
 ) : Bean(null, null) {
 
     /**
      * 拿到一条数据
-     *
+     * 糟了 这里是挂起函数 那怎么取数据呢
+     * 这里不是挂起函数 那要怎么保护数据呢
      * @Author t13max
      * @Date 18:56 2025/7/8
      */
