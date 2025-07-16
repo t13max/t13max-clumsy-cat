@@ -1,6 +1,7 @@
 package com.t13max.kdb.table;
 
 import com.t13max.kdb.bean.Human;
+import kotlin.Result;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import org.jetbrains.annotations.NotNull;
@@ -13,21 +14,22 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Humans {
 
-    public static Human get(long id) {
-        Continuation<Human> continuation = new Continuation<Human>(){
+    //有点蠢...
+    public static Human get(long id, CoroutineContext coroutineContext) {
+        Continuation<Human> continuation = new Continuation<Human>() {
             @Override
-            public void resumeWith(@NotNull Object o) {
+            public void resumeWith(@NotNull Object result) {
 
             }
 
             @NotNull
             @Override
             public CoroutineContext getContext() {
-                return null;
+                return coroutineContext;
             }
         };
 
-        return _Table.getInstance().humans.get(id,continuation);
+        return (Human) _Table.getInstance().humans.get(id, continuation);
     }
 
     public static void insert(Human human) {

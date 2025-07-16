@@ -19,7 +19,7 @@ public class PTest extends Procedure {
      */
     protected boolean process() throws Exception {
 
-        Human human = Humans.get(1);
+        Human human = Humans.get(1, getCoroutineContext());
         human.setExp(111);
         return false;
     }

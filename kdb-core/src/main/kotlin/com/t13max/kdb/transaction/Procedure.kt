@@ -1,7 +1,10 @@
 package com.t13max.kdb.transaction
 
+import com.t13max.kdb.transaction.Transaction.Companion.transactionLocal
 import com.t13max.kdb.utils.Log
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  *
@@ -10,7 +13,7 @@ import kotlinx.coroutines.Job
  */
 open class Procedure {
 
-    protected var job = null;
+    protected var coroutineContext: CoroutineContext? = null
 
     private var success = false
 
@@ -28,6 +31,8 @@ open class Procedure {
                 this.fetchTasks()
             }
         }
+
+        coroutineContext = currentCoroutineContext()
 
         try {
             if (process()) {
@@ -75,7 +80,11 @@ open class Procedure {
     }
 
     fun getJob(): Job? {
-        return job;
+        return coroutineContext?.get(Job)
+    }
+
+    fun currentTransaction(): Transaction {
+        return transactionLocal.get(context)
     }
 }
 

@@ -14,9 +14,6 @@ public abstract class AutoData implements IData {
 
     private volatile byte _option;
 
-    //所属任务
-   protected volatile Job job;
-
     /**
      * 校验
      *
@@ -65,6 +62,6 @@ public abstract class AutoData implements IData {
 
     public <V extends IData> V setJob(Job job) {
         this.job = job;
-        return (V)this;
+        return (V) this;
     }
 }

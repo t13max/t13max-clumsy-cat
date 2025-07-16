@@ -10,6 +10,7 @@ import com.t13max.kdb.utils.CoroutineLocal
 import com.t13max.kdb.utils.Log
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -26,6 +27,10 @@ class Transaction {
 
         suspend fun current(): Transaction {
             return transactionLocal.get()
+        }
+
+        fun current(context: CoroutineContext): Transaction {
+            return transactionLocal.get(context)
         }
 
         suspend fun create(): Transaction {
