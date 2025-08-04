@@ -10,7 +10,6 @@ import com.t13max.kdb.transaction.Procedure;
  */
 public class PTest extends Procedure {
 
-
     /**
      * 逻辑
      *
