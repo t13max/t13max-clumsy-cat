@@ -75,7 +75,7 @@ open class Procedure {
     }
 
     @Throws(Exception::class)
-    protected open fun process(): Boolean {
+    protected open suspend fun process(): Boolean {
         return false
     }
 

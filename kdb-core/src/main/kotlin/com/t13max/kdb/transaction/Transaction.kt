@@ -23,7 +23,7 @@ class Transaction {
 
     companion object {
         // 最大分段数
-        private val transactionLocal = CoroutineLocal { Transaction() }
+        val transactionLocal = CoroutineLocal { Transaction() }
 
         suspend fun current(): Transaction {
             return transactionLocal.get()
