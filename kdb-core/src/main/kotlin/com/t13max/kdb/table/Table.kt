@@ -2,9 +2,7 @@ package com.t13max.kdb.table
 
 import com.t13max.kdb.bean.Bean
 import com.t13max.kdb.bean.IData
-import com.t13max.kdb.bean.Record
 import com.t13max.kdb.cache.CoroutineSafeCache
-import com.t13max.kdb.cache.DefaultTableCache
 import com.t13max.kdb.conf.TableConf
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock

@@ -1,7 +1,6 @@
 package com.t13max.kdb.transaction
 
 import com.t13max.kdb.bean.IData
-import com.t13max.kdb.bean.Record
 import com.t13max.kdb.executor.AutoSaveExecutor
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock

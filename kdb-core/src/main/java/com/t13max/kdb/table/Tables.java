@@ -2,8 +2,11 @@ package com.t13max.kdb.table;
 
 import com.t13max.kdb.bean.IData;
 import com.t13max.kdb.conf.KdbConf;
+import com.t13max.kdb.table.Table;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 所有表的集合
@@ -13,15 +16,41 @@ import java.util.*;
  */
 public class Tables {
 
-    private final Map<String, Table<? extends IData>> tables = new HashMap<>();
+    private final static Tables tables = new Tables();
 
-    public Tables(KdbConf kdbConf) {
+    private final Map<String, Table<? extends IData>> tablesMap = new HashMap<>();
 
-        //创建表 表里有表缓存 数据存储层建立连接
+    private final AtomicBoolean startMark = new AtomicBoolean();
+
+    private Tables() {
+
     }
 
+    public static Tables inst() {
+        return tables;
+    }
+
+    public boolean start(KdbConf conf) {
+        //根据配置创建
+        if (!startMark.compareAndSet(false, true)) {
+            return false;
+        }
+
+        //根据配置创建..
+
+        //临时写一个
+        //this.tables.put("Members",new )
+        return true;
+    }
+
+    //停止调用
     public boolean shutdown() {
 
         return false;
+    }
+
+    public <T extends IData> Table<T> getTable(String tableName) {
+
+        return (Table<T>) tablesMap.get(tableName);
     }
 }

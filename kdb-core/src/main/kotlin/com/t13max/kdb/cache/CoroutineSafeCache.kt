@@ -1,7 +1,6 @@
 package com.t13max.kdb.cache
 
 import com.t13max.kdb.bean.IData
-import com.t13max.kdb.bean.Record
 import com.t13max.kdb.utils.Utils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

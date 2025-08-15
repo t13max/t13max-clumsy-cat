@@ -1,7 +1,6 @@
 package com.t13max.kdb.cache;
 
 import com.t13max.kdb.bean.IData;
-import com.t13max.kdb.bean.Record;
 
 /**
  * 表缓存 顶级接口
@@ -13,13 +12,13 @@ import com.t13max.kdb.bean.Record;
 public interface ITableCache<V extends IData> {
 
     //根据id取到数据
-    Record<V> get(long id);
+    V get(long id);
 
     //添加一条记录
-    void add(Record<V> record);
+    void add(V record);
 
     //移除一条记录
-    Record<V> remove(long id);
+    V remove(long id);
 
     //清空
     void clear();

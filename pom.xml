@@ -23,6 +23,7 @@
         <kotlin.version>1.9.22</kotlin.version>
         <kotlin.coroutines.version>1.8.0</kotlin.coroutines.version>
         <snakeyaml.version>2.2</snakeyaml.version>
+        <cglib.version>3.3.0</cglib.version>
     </properties>
 
     <dependencies>

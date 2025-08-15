@@ -18,7 +18,7 @@ public class MongoStorage implements IStorage {
     }
 
     @Override
-    public <T extends IData> List<T> findByRoleId(Class<T> clazz, long rid) {
+    public <T extends IData> List<T> findByForeignId(Class<T> clazz, long foreignId, String foreignName) {
         return List.of();
     }
 

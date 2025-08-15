@@ -16,8 +16,8 @@ public interface IStorage {
     //查询所有
     <T extends IData> List<T> findAll(Class<T> clazz);
 
-    //根据角色id查询列表
-    <T extends IData> List<T> findByRoleId(Class<T> clazz, long rid);
+    //根据外键查询列表
+    <T extends IData> List<T> findByForeignId(Class<T> clazz, long foreignId, String foreignName);
 
     //根据唯一id查询
     <T extends IData> T findById(Class<T> clazz, long id);

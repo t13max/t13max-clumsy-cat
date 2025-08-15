@@ -1,6 +1,7 @@
 package com.t13max.kdb.conf;
 
-import java.beans.ConstructorProperties;
+import lombok.Data;
+
 
 /**
  * 变量
@@ -8,21 +9,18 @@ import java.beans.ConstructorProperties;
  * @author t13max
  * @since 14:24 2025/7/15
  */
+@Data
 public class VarConf {
 
     //变量名
-    public final String name;
+    private String name;
 
     //变量类型
-    public final String type;
+    private String type;
 
     //说明
-    public final String comment;
+    private String comment;
 
-    @ConstructorProperties({"name", "type", "comment"})
-    public VarConf(String name, String type, String comment) {
-        this.name = name;
-        this.type = type;
-        this.comment = comment;
-    }
+
+
 }

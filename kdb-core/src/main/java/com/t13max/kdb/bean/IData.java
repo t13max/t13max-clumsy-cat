@@ -7,4 +7,16 @@ package com.t13max.kdb.bean;
 public interface IData {
 
     long getId();
+
+    IData parent();
+
+    //提交
+    default boolean commit() {
+        return true;
+    }
+
+    //回滚
+    default boolean rollBack() {
+        return true;
+    }
 }
