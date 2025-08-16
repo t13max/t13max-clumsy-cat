@@ -10,7 +10,6 @@ import java.util.List;
  * @author t13max
  * @since 10:24 2025/7/8
  */
-@Data
 public class KdbConf {
 
     //缓存相关配置
@@ -28,5 +27,43 @@ public class KdbConf {
     //表配置 表名->配置
     private List<TableConf> tables;
 
+    public CacheConf getCache() {
+        return cache;
+    }
 
+    public void setCache(CacheConf cache) {
+        this.cache = cache;
+    }
+
+    public AutoConf getAuto() {
+        return auto;
+    }
+
+    public void setAuto(AutoConf auto) {
+        this.auto = auto;
+    }
+
+    public StorageConf getStorage() {
+        return storage;
+    }
+
+    public void setStorage(StorageConf storage) {
+        this.storage = storage;
+    }
+
+    public DataConf getData() {
+        return data;
+    }
+
+    public void setData(DataConf data) {
+        this.data = data;
+    }
+
+    public List<TableConf> getTables() {
+        return tables;
+    }
+
+    public void setTables(List<TableConf> tables) {
+        this.tables = tables;
+    }
 }
