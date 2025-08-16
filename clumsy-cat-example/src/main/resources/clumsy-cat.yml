@@ -20,7 +20,7 @@ storage:
 #实体类
 data:
   #路径
-  path: com.t13max.kdb.data
+  path: com.t13max.cc.data
 
 # 表列表
 tables:

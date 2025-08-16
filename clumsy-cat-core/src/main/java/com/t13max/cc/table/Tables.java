@@ -1,7 +1,7 @@
 package com.t13max.cc.table;
 
 import com.t13max.cc.bean.IData;
-import com.t13max.cc.conf.KdbConf;
+import com.t13max.cc.conf.ClumsyCatConf;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class Tables {
         return tables;
     }
 
-    public boolean start(KdbConf conf) {
+    public boolean start(ClumsyCatConf conf) {
         //根据配置创建
         if (!startMark.compareAndSet(false, true)) {
             return false;

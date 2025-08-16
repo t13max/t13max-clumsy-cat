@@ -1,6 +1,7 @@
 package com.t13max.cc.transaction
 
 import com.t13max.cc.bean.IData
+import com.t13max.cc.executor.AutoSaveExecutor
 import com.t13max.cc.lock.LockCache
 import com.t13max.cc.lock.RecordLock
 import com.t13max.cc.utils.Log
@@ -82,7 +83,7 @@ class Transaction(private val transactionId: Long) {
     }
 
     /**
-     * 执行Procedure
+     * 执行一个过程
      *
      * @Author t13max
      * @Date 11:02 2025/7/12
@@ -99,15 +100,15 @@ class Transaction(private val transactionId: Long) {
             //执行call
             if (procedure.call()) {
                 //成功 提交后逻辑
-                commitAfter()
+                commit()
             } else {
                 //失败了 回滚后逻辑
-                rollbackAfter()
+                rollback()
             }
         } catch (throwable: Throwable) {
             //异常了 回滚
             Log.TRANSACT.error("perform exception!", throwable)
-            rollbackAfter()
+            rollback()
         } finally {
             //finally
             finish(procedure)
@@ -119,54 +120,40 @@ class Transaction(private val transactionId: Long) {
     }
 
     /**
-     * Procedure调用的 回滚
+     * 事务提交
      *
      * @Author t13max
      * @Date 11:01 2025/7/12
      */
-    suspend fun rollback() {
-        Log.TRANSACT.info("rollback!  transactionId={}", transactionId)
-        for (valueMap in transactionCache.values) {
-            for (data in valueMap.values) {
-                data.rollback()
-            }
-        }
-    }
+    private suspend fun commit() {
 
-    /**
-     * Procedure调用的 提交
-     *
-     * @Author t13max
-     * @Date 11:01 2025/7/12
-     */
-    suspend fun commit() {
         Log.TRANSACT.info("commit!  transactionId={}", transactionId)
         for (valueMap in transactionCache.values) {
             for (data in valueMap.values) {
                 data.commit()
             }
         }
-    }
 
-    /**
-     * Transaction自己调用的 最后的提交
-     *
-     * @Author t13max
-     * @Date 11:01 2025/7/12
-     */
-    suspend fun commitAfter() {
         for (runnable in whileCommitTaskList) {
             runTask(runnable)
         }
     }
 
     /**
-     * Transaction自己调用的 最后的回滚
+     * 事务回滚
      *
      * @Author t13max
      * @Date 11:01 2025/7/12
      */
-    suspend fun rollbackAfter() {
+    private suspend fun rollback() {
+
+        Log.TRANSACT.info("rollback!  transactionId={}", transactionId)
+        for (valueMap in transactionCache.values) {
+            for (data in valueMap.values) {
+                data.rollback()
+            }
+        }
+
         for (runnable in whileRollbackTaskList) {
             runTask(runnable)
         }
@@ -178,7 +165,7 @@ class Transaction(private val transactionId: Long) {
      * @Author t13max
      * @Date 13:43 2025/8/16
      */
-    suspend fun runTask(task: suspend () -> Unit) {
+    private suspend fun runTask(task: suspend () -> Unit) {
         try {
             task.invoke()
         } catch (exception: Exception) {
@@ -221,12 +208,11 @@ class Transaction(private val transactionId: Long) {
         }
 
         //异步存库 如果有的话...
-
-        /*val recordList: List<Record<IData>> = recordCache.values
-            .flatMap { it.values }
-            .map { it as Record<IData> }
-
-        AutoSaveExecutor.batchRecordChange(recordList)*/
+        for (entry in transactionCache.entries) {
+            val clazz = entry.key
+            val valueMap = entry.value
+            AutoSaveExecutor.inst().batchRecordChange(valueMap.values)
+        }
     }
 
     /**

@@ -25,7 +25,7 @@ import kotlin.run
  * 串行执行器
  * 多个作用域 多个Channel
  *
- * @author cxcm
+ * @author t13max
  * @Date 13:53 2025/6/26
  */
 
@@ -64,7 +64,7 @@ class SerialExecutor<E : Enum<E>>() {
     /**
      * 提供给kotlin的提交任务的方法
      *
-     * @author cxcm
+     * @author t13max
      * @Date 13:53 2025/6/26
      */
     suspend fun <T> submitWithResult(type: E, id: Long, isIO: Boolean = false, action: suspend () -> T): T {
@@ -76,7 +76,7 @@ class SerialExecutor<E : Enum<E>>() {
     /**
      * 提供给java的提交任务的方法
      *
-     * @author cxcm
+     * @author t13max
      * @Date 13:53 2025/6/26
      */
     fun <T> submitWithResultJ(type: E, id: Long, isIO: Boolean = false, callable: Callable<T>): T {
@@ -91,7 +91,7 @@ class SerialExecutor<E : Enum<E>>() {
     /**
      * 获取channel 不存在则创建
      *
-     * @author cxcm
+     * @author t13max
      * @Date 13:53 2025/6/26
      */
     private suspend fun getOrCreateChannel(type: E, id: Long): Channel<SerialTaskWithResult<*>> {

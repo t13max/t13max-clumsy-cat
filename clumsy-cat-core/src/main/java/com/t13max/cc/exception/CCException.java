@@ -1,29 +1,29 @@
 package com.t13max.cc.exception;
 
 /**
- * Kdb异常
+ * 异常
  *
  * @author t13max
  * @since 16:55 2025/7/7
  */
-public class KdbException extends RuntimeException {
+public class CCException extends RuntimeException {
 
-    public KdbException() {
+    public CCException() {
     }
 
-    public KdbException(String message) {
+    public CCException(String message) {
         super(message);
     }
 
-    public KdbException(String message, Throwable cause) {
+    public CCException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public KdbException(Throwable cause) {
+    public CCException(Throwable cause) {
         super(cause);
     }
 
-    public KdbException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public CCException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

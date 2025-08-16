@@ -4,7 +4,6 @@ import com.t13max.cc.table.MemberTable
 import com.t13max.cc.table.RoomTable
 import com.t13max.cc.transaction.Procedure
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 /**
@@ -12,7 +11,7 @@ import kotlinx.coroutines.withContext
  * @author t13max
  * @since 11:08 2025/8/16
  */
-class PTest(val uid: Long, val roomId: Long) : Procedure() {
+class PExample(private val uid: Long, private val roomId: Long) : Procedure() {
 
     override suspend fun process(): Boolean {
 

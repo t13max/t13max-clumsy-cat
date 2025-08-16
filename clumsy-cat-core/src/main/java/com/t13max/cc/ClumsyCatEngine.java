@@ -2,7 +2,7 @@ package com.t13max.cc;
 
 import com.t13max.cc.bean.AutoData;
 import com.t13max.cc.conf.AutoConf;
-import com.t13max.cc.conf.KdbConf;
+import com.t13max.cc.conf.ClumsyCatConf;
 import com.t13max.cc.enhance.SetterEnhancer;
 import com.t13max.cc.executor.AutoSaveExecutor;
 import com.t13max.cc.storage.IStorage;
@@ -21,16 +21,16 @@ import java.util.Set;
  * @author t13max
  * @since 17:01 2025/7/7
  */
-public class KdbEngine {
+public class ClumsyCatEngine {
 
     //配置文件变量名
     private final static String CONF_NAME = "CONF_NAME";
 
-    //Kdb实例
-    private final static KdbEngine INSTANCE = new KdbEngine();
+    //引擎单例
+    private final static ClumsyCatEngine INSTANCE = new ClumsyCatEngine();
 
     //配置
-    private KdbConf CONF;
+    private ClumsyCatConf CONF;
 
     //数据存储层接口
     @Getter
@@ -42,7 +42,7 @@ public class KdbEngine {
      * @Author t13max
      * @Date 14:46 2025/7/15
      */
-    public static KdbEngine inst() {
+    public static ClumsyCatEngine inst() {
         return INSTANCE;
     }
 
@@ -72,7 +72,7 @@ public class KdbEngine {
             Tables.inst().start(CONF);
 
         } catch (Throwable throwable) {
-            Log.KDB.error("KDB start failed!", throwable);
+            Log.ENGINE.error("ClumsyCatEngine start failed!", throwable);
             return false;
         }
         return true;
@@ -96,7 +96,7 @@ public class KdbEngine {
                 this.storage = RegisterStorage.inst();
             }
             default -> {
-                Log.KDB.error("存储层未实现");
+                Log.ENGINE.error("存储层未实现");
             }
         }
     }
@@ -136,7 +136,7 @@ public class KdbEngine {
 
             return true;
         } catch (Throwable throwable) {
-            Log.KDB.error("kdb shutdown error!", throwable);
+            Log.ENGINE.error("ClumsyCatEngine shutdown error!", throwable);
         }
         return false;
     }
@@ -147,7 +147,7 @@ public class KdbEngine {
      * @Author t13max
      * @Date 14:47 2025/7/15
      */
-    public KdbConf getConf() {
+    public ClumsyCatConf getConf() {
         return CONF;
     }
 
@@ -159,10 +159,10 @@ public class KdbEngine {
      */
     private void loadConf() {
 
-        String confName = System.getProperty(CONF_NAME, "kdb.yml");
+        String confName = System.getProperty(CONF_NAME, "clumsy-cat.yml");
 
         Yaml yaml = new Yaml();
 
-        CONF = yaml.loadAs(KdbEngine.class.getClassLoader().getResourceAsStream(confName), KdbConf.class);
+        CONF = yaml.loadAs(ClumsyCatEngine.class.getClassLoader().getResourceAsStream(confName), ClumsyCatConf.class);
     }
 }

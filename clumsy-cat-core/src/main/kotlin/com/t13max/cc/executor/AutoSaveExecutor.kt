@@ -1,6 +1,6 @@
 package com.t13max.cc.executor
 
-import com.t13max.cc.KdbEngine
+import com.t13max.cc.ClumsyCatEngine
 import com.t13max.cc.bean.IData
 import com.t13max.cc.bean.Option
 import com.t13max.cc.lock.LockCache
@@ -37,21 +37,21 @@ class AutoSaveExecutor() {
     private val saveMap = mutableMapOf<Option, IData>()
 
     fun <V : IData> recordChange(value: V) {
-        if (!KdbEngine.inst().conf.auto.isOpen) {
+        if (!ClumsyCatEngine.inst().conf.auto.isOpen) {
             return
         }
         //提交到channel
-        Utils.Companion.autoSaveScope.launch {
+        Utils.autoSaveScope.launch {
             changeChannel.send(value)
         }
     }
 
-    fun <V : IData> batchRecordChange(recordList: List<V>) {
-        if (!KdbEngine.inst().conf.auto.isOpen) {
+    fun batchRecordChange(recordList: MutableCollection<IData>) {
+        if (!ClumsyCatEngine.inst().conf.auto.isOpen) {
             return
         }
         //提交到channel
-        Utils.Companion.autoSaveScope.launch {
+        Utils.autoSaveScope.launch {
             for (record in recordList) {
                 changeChannel.send(record)
             }
@@ -70,12 +70,12 @@ class AutoSaveExecutor() {
         return list
     }
 
-    suspend fun transferN() {
+    private suspend fun transferN() {
 
         //深拷贝对象 转移数据
     }
 
-    suspend fun transfer0() {
+    private suspend fun transfer0() {
 
         val flushLock = LockCache.flushLock()
 
@@ -89,12 +89,13 @@ class AutoSaveExecutor() {
         }
     }
 
-    suspend fun save() {
+    private suspend fun save() {
         //调用数据层 保存数据
+        ClumsyCatEngine.inst().storage
     }
 
     fun start() {
-        Utils.Companion.autoSaveScope.launch {
+        Utils.autoSaveScope.launch {
 
             // 协程取消时自动退出
             while (isActive) {

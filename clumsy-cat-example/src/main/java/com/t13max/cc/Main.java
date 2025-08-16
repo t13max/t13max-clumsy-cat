@@ -4,7 +4,7 @@ import com.t13max.cc.cache.EmptyTableCache;
 import com.t13max.cc.conf.TableConf;
 import com.t13max.cc.data.MemberData;
 import com.t13max.cc.data.RoomData;
-import com.t13max.cc.procedure.PTest;
+import com.t13max.cc.procedure.PExample;
 import com.t13max.cc.storage.RegisterStorage;
 import com.t13max.cc.table.MemberTable;
 import com.t13max.cc.table.RoomTable;
@@ -39,20 +39,20 @@ public class Main {
         registerStorage.registerFunction(RoomData.class, RegisterStorage.Method.FIND_BY_ID, roomDataHashMap::get);
 
 
-        if (!KdbEngine.inst().start()) {
+        if (!ClumsyCatEngine.inst().start()) {
 
             System.exit(0);
         }
 
         Map<String, TableConf> confMap = new HashMap<>();
-        for (TableConf tableConf : KdbEngine.inst().getConf().getTables()) {
+        for (TableConf tableConf : ClumsyCatEngine.inst().getConf().getTables()) {
             confMap.put(tableConf.getName(), tableConf);
         }
 
         Tables.inst().putTable("MemberTable", new MemberTable(confMap.get("MemberTable"), EmptyTableCache.emptyTableCache(), registerStorage));
         Tables.inst().putTable("RoomTable", new RoomTable(confMap.get("RoomTable"), EmptyTableCache.emptyTableCache(), registerStorage));
 
-        new PTest(1L, 2L).submit();
+        new PExample(1L, 2L).submit();
 
 
         Thread.sleep(10000);

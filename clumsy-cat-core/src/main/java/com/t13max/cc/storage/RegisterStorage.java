@@ -58,12 +58,12 @@ public final class RegisterStorage implements IStorage {
     public <T extends IData> T findById(Class<T> clazz, long id) {
         Map<Method, Function<Long, ? extends IData>> methodFunctionMap = findByIdFunctionMap.get(clazz);
         if (methodFunctionMap == null) {
-            Log.KDB.error("类型未注册, clazz={}", clazz);
+            Log.ENGINE.error("类型未注册, clazz={}", clazz);
             return null;
         }
         Function<Long, ? extends IData> function = methodFunctionMap.get(Method.FIND_BY_ID);
         if (function == null) {
-            Log.KDB.error("函数未注册, clazz={}, method={}", clazz, Method.FIND_BY_ID);
+            Log.ENGINE.error("函数未注册, clazz={}, method={}", clazz, Method.FIND_BY_ID);
             return null;
         }
         IData value = function.apply(id);

@@ -3,13 +3,12 @@ package com.t13max.cc.table
 import com.t13max.cc.bean.IData
 import com.t13max.cc.cache.ITableCache
 import com.t13max.cc.conf.TableConf
-import com.t13max.cc.exception.KdbException
+import com.t13max.cc.exception.CCException
 import com.t13max.cc.lock.LockCache
 import com.t13max.cc.lock.RecordLock
 import com.t13max.cc.storage.IStorage
 import com.t13max.cc.transaction.Transaction
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import java.util.Optional
 
@@ -44,10 +43,7 @@ open class Table<V : IData>(
         //加锁执行
         lock.lock()
 
-        var current = Transaction.current()
-        if (current == null) {
-            throw KdbException("Transaction.current()为空")
-        }
+        val current = Transaction.current() ?: throw CCException("Transaction.current()为空")
         current.addLock(lock)
         try {
             //事务缓存

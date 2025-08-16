@@ -1,16 +1,15 @@
 package com.t13max.cc.conf;
 
-import lombok.Data;
 
 import java.util.List;
 
 /**
- * Kdb配置
+ * 引擎配置
  *
  * @author t13max
  * @since 10:24 2025/7/8
  */
-public class KdbConf {
+public class ClumsyCatConf {
 
     //缓存相关配置
     private CacheConf cache;

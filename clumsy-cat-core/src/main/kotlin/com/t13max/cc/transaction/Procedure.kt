@@ -4,17 +4,18 @@ import com.t13max.cc.utils.Log
 import kotlinx.coroutines.Job
 
 /**
+ * 存储过程
  *
  * @author t13max
  * @since 17:23 2025/7/10
  */
-open class Procedure {
+abstract class Procedure {
 
     private var success = false
 
     /**
-     * call方法
-     *  会被Transaction调用 或者已经在 Procedure.process内 直接在当前事务执行
+     * call方法 执行逻辑带返回值
+     * 会被Transaction调用 或者已经在 Procedure.process内 直接在当前事务执行
      *
      * @Author t13max
      * @Date 13:40 2025/8/16
@@ -53,12 +54,7 @@ open class Procedure {
      * @Date 13:40 2025/8/16
      */
     private suspend fun rollback() {
-        var transaction = Transaction.current()
-        if (transaction == null) {
-            Log.TRANSACT.error("rollback, Transaction.current() is null, transactionId={}")
-            return
-        }
-        transaction.rollback()
+
     }
 
     /**
@@ -68,12 +64,7 @@ open class Procedure {
      * @Date 13:40 2025/8/16
      */
     private suspend fun commit() {
-        var transaction = Transaction.current()
-        if (transaction == null) {
-            Log.TRANSACT.error("commit, Transaction.current() is null, transactionId={}")
-            return
-        }
-        transaction.commit()
+
     }
 
     /**
