@@ -1,10 +1,8 @@
 package com.t13max.kdb.transaction
 
-import com.t13max.kdb.transaction.Transaction.Companion.transactionLocal
 import com.t13max.kdb.utils.Log
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.Runnable
 
 /**
  *
@@ -13,26 +11,26 @@ import kotlin.coroutines.CoroutineContext
  */
 open class Procedure {
 
-    protected var coroutineContext: CoroutineContext? = null
-
     private var success = false
 
+    /**
+     * call方法
+     *  会被Transaction调用 或者已经在 Procedure.process内 直接在当前事务执行
+     *
+     * @Author t13max
+     * @Date 13:40 2025/8/16
+     */
     suspend fun call(): Boolean {
-
+        //当前是否在事务内 不在则创建
         if (Transaction.current() == null) {
 
             try {
-                // perform 将回调本函数,然后执行事务已经存在的分支。
-                Transaction.create().perform(this)
+                TransactionExecutor.execute(this)
             } catch (throwable: Throwable) {
-                Log.TRANSACT.error("Transaction create error!${throwable.message}")
-            } finally {
-                Transaction.destroy()
-                this.fetchTasks()
+                //创建失败???
+                Log.TRANSACT.error("Transaction create error!", throwable)
             }
         }
-
-        coroutineContext = currentCoroutineContext()
 
         try {
             if (process()) {
@@ -41,7 +39,7 @@ open class Procedure {
                 return true
             }
         } catch (throwable: Throwable) {
-            Log.TRANSACT.error("Procedure execute error! ${throwable.message}")
+            Log.TRANSACT.error("Procedure execute error! ", throwable)
         }
 
         rollback()
@@ -49,42 +47,104 @@ open class Procedure {
         return false
     }
 
-    suspend fun fetchTasks() {
-
+    /**
+     * 回滚事务
+     *
+     * @Author t13max
+     * @Date 13:40 2025/8/16
+     */
+    private suspend fun rollback() {
+        var transaction = Transaction.current()
+        if (transaction == null) {
+            Log.TRANSACT.error("rollback, Transaction.current() is null, transactionId={}")
+            return
+        }
+        transaction.rollback()
     }
 
-    suspend fun rollback() {
-        Transaction.current().rollback()
+    /**
+     * 提交事务
+     *
+     * @Author t13max
+     * @Date 13:40 2025/8/16
+     */
+    private suspend fun commit() {
+        var transaction = Transaction.current()
+        if (transaction == null) {
+            Log.TRANSACT.error("commit, Transaction.current() is null, transactionId={}")
+            return
+        }
+        transaction.commit()
     }
 
-    suspend fun commit() {
-        Transaction.current().commit()
+    /**
+     * 提交一个事务 有返回值
+     * 返回值可以优化一下
+     * @Author t13max
+     * @Date 13:39 2025/8/16
+     */
+    fun submit(): Job {
+        return TransactionExecutor.submit(this)
     }
 
-    fun submit() {
-        TransactionExecutor.submit(this)
-    }
-
+    /**
+     * 执行一个事务 无返回值
+     *
+     * @Author t13max
+     * @Date 13:39 2025/8/16
+     */
     fun execute() {
         TransactionExecutor.execute(this)
     }
 
-    private suspend fun verify() {
+    private suspend fun verify(): Boolean {
         var current = Transaction.current()
-
+        if (current == null) {
+            Log.TRANSACT.error("verify, Transaction is null!")
+            return false
+        }
+        return true
     }
 
-    @Throws(Exception::class)
+    /**
+     * 执行逻辑, 写业务代码的地方
+     *
+     * @Author t13max
+     * @Date 13:38 2025/8/16
+     */
     protected open suspend fun process(): Boolean {
         return false
     }
 
-    fun getJob(): Job? {
-        return coroutineContext?.get(Job)
+    /**
+     * commit后执行任务
+     *
+     * @Author t13max
+     * @Date 13:38 2025/8/16
+     */
+    protected suspend fun executeWhileCommit(task: Runnable) {
+        var current = Transaction.current()
+        if (current == null) {
+            Log.TRANSACT.error("executeWhileCommit, Transaction is null!")
+            return
+        }
+        current.executeWhileCommit(task)
     }
 
-    fun currentTransaction(): Transaction {
-        return transactionLocal.get(context)
+    /**
+     * rollback后执行任务
+     *
+     * @Author t13max
+     * @Date 13:38 2025/8/16
+     */
+    protected suspend fun executeWhileRollback(task: Runnable) {
+        var current = Transaction.current()
+        if (current == null) {
+            Log.TRANSACT.error("executeWhileRollback, Transaction is null!")
+            return
+        }
+        current.executeWhileCommit(task)
     }
+
 }
 

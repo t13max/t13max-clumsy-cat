@@ -36,7 +36,7 @@ class CoroutineSafeCache<V : IData>(private val cache: ITableCache<V>) {
         Utils.tableCacheScope.coroutineContext[Job]?.cancel()
     }
 
-    suspend fun get(id: Long): Record<V?> {
+    suspend fun get(id: Long): V? {
         mutex.lock()
         try {
             return cache.get(id)
@@ -46,17 +46,17 @@ class CoroutineSafeCache<V : IData>(private val cache: ITableCache<V>) {
     }
 
     //添加一条记录
-    suspend fun add(record: Record<V?>?) {
+    suspend fun add(value: V?) {
         mutex.lock()
         try {
-            cache.add(record)
+            cache.add(value)
         } finally {
             mutex.unlock()
         }
     }
 
     //移除一条记录
-    suspend fun remove(id: Long): Record<V?> {
+    suspend fun remove(id: Long): V? {
         mutex.lock()
         try {
             return cache.remove(id)

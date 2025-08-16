@@ -1,17 +1,18 @@
 package com.t13max.kdb.table
 
-import com.t13max.kdb.bean.Bean
 import com.t13max.kdb.bean.IData
 import com.t13max.kdb.cache.CoroutineSafeCache
+import com.t13max.kdb.cache.ITableCache
 import com.t13max.kdb.conf.TableConf
+import com.t13max.kdb.exception.KdbException
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock
 import com.t13max.kdb.storage.IStorage
+import com.t13max.kdb.transaction.Transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
+import java.util.Optional
 
 /**
  * 数据表 从这里拿数据
@@ -26,59 +27,78 @@ open class Table<V : IData>(
     //配置
     private val tableConf: TableConf,
     //表缓存
-    private val cache: CoroutineSafeCache<V>,
+    private val cache: ITableCache<V>,
     //存储层
     private val storage: IStorage,
-) : Bean(null, null) {
+) {
 
     /**
      * 拿到一条数据
-     * 糟了 这里是挂起函数 那怎么取数据呢
-     * 这里不是挂起函数 那要怎么保护数据呢
-     * ContinuationImpl!!!!!!!!!!!!!!!!!!!!!!
-     *
+     * 加协程锁
      * @Author t13max
      * @Date 18:56 2025/7/8
      */
-    suspend fun get(id: Long): V? {
+    suspend fun get(id: Long): Optional<V> {
+
+        val lock: RecordLock = LockCache.getLock(tableConf.name, id)
+
+        //加锁执行
+        lock.lock()
+
+        var current = Transaction.current()
+        if (current == null) {
+            throw KdbException("Transaction.current()为空")
+        }
+        current.addLock(lock)
+        try {
+            //事务缓存
+            var value = current.getCache(clazz, id)
+            if (value == null) {
+                //表缓存
+                value = cache.get(id)
+                if (value == null) {
+                    //IO操作 切换到IO线程执行 这里要不要优化一下专门的IO
+                    value = withContext(Dispatchers.IO) {
+                        //持久层
+                        val value = storage.findById(clazz, id)
+                        value
+                    }
+                    if (value != null) {
+                        cache.add(value)
+                    }
+                }
+                if (value != null){
+                    current.addCache(clazz,value)
+                }
+            }
+
+            return Optional.ofNullable(value)
+        } finally {
+            //不释放锁
+        }
+    }
+
+    suspend fun select(id: Long): V {
 
         val lock: RecordLock = LockCache.getLock(tableConf.name, id)
 
         //加锁执行
         lock.lock()
         try {
-            var record = cache.get(id)
-            if (record == null) {
-
-                val outerTable = this@Table
-                //IO操作 切换到IO线程执行
-                record = withContext(Dispatchers.IO) {
+            var value = cache.get(id)
+            if (value == null) {
+                //IO操作 切换到IO线程执行 这里要不要优化一下专门的IO
+                value = withContext(Dispatchers.IO) {
                     val value = storage.findById(clazz, id)
-                    Record(outerTable, value)
+                    value
                 }
             }
-            return setJob(record.value)
+            return value
         } finally {
-            //释放吗?
+
             lock.unlock()
         }
-    }
 
-    suspend fun select(id: Long): V? {
-
-        val lock: RecordLock = LockCache.getLock(tableConf.name, id)
-
-        //加锁执行
-        val result = lock.withLock {
-            var record = cache.get(id)
-            if (record == null) {
-                val value = storage.findById(clazz, id)
-                record = Record(this, value)
-            }
-            record
-        }
-
-        return setJob(result.value)
     }
 
     /**
@@ -94,9 +114,8 @@ open class Table<V : IData>(
         lock.lock()
 
         try {
-            val record: Record<V> = Record(value)
-            cache.add(record as Record<V?>?)
-            setJob(value)
+            cache.add(value)
+            //通知异步存库 如果有
         } finally {
             lock.unlock()
         }
@@ -110,18 +129,6 @@ open class Table<V : IData>(
      */
     suspend fun <V : IData> delete(id: Long) {
         // 实现删除逻辑
-    }
-
-    suspend fun <V : IData> setJob(v: V?): V? {
-        if (v == null) {
-            return null
-        }
-        val job = currentCoroutineContext()[Job]
-        return v.setJob(job)
-    }
-
-    override fun getId(): Long? {
-        return 0L
     }
 
 }

@@ -113,7 +113,7 @@ class SerialExecutor() {
                         try {
 
                             withTimeoutOrNull(5000) {
-                                if (task.isIo) {
+                                if (task.io) {
                                     //在IO线程执行 挂起等待
                                     withContext(Utils.virtualThreadDispatcher) {
                                         task.run()

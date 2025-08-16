@@ -2,6 +2,7 @@ package com.t13max.kdb.conf;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,14 +14,11 @@ import java.util.Map;
 @Data
 public class KdbConf {
 
-
-    private int a;
-
-    private int b;
+    //是否开启缓存
+    private boolean cache;
 
     //表配置 表名->配置
-    private Map<String, TableConf> tableConfMap;
+    private List<TableConf> tables;
 
-    //Bean配置 Bean名->配置
-    private Map<String, BeanConf> beanConfMap;
+
 }

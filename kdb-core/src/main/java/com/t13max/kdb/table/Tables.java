@@ -39,8 +39,13 @@ public class Tables {
         //根据配置创建..
 
         //临时写一个
-        //this.tables.put("Members",new )
+
         return true;
+    }
+
+    //临时方案 理论上应该在start里自动扫描 添加
+    public void putTable(String name, Table<? extends IData> table) {
+        this.tablesMap.put(name, table);
     }
 
     //停止调用

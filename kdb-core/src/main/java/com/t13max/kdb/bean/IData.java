@@ -8,15 +8,16 @@ public interface IData {
 
     long getId();
 
-    IData parent();
+    //预留 未来支持引用类型
+    default IData parent() {
+        return null;
+    }
 
     //提交
-    default boolean commit() {
-        return true;
+    default void commit() {
     }
 
     //回滚
-    default boolean rollBack() {
-        return true;
+    default void rollback() {
     }
 }

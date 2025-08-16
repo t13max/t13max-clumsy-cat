@@ -6,7 +6,7 @@ package com.t13max.kdb.consts;
  */
 public interface Const {
 
-    String SCOPE_ROLE = "role";
+    String SCOPE_ROLE = "member";
 
     String SCOPE_SERVER = "server";
 

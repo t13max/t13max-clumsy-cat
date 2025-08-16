@@ -8,7 +8,6 @@ import lombok.Data;
  * @author t13max
  * @since 10:24 2025/7/8
  */
-@Data
 public class TableConf {
 
     //表名
@@ -20,4 +19,35 @@ public class TableConf {
     //修改这个数据所需要持有的锁
     private String lock;
 
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public String getLock() {
+        return lock;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public void setLock(String lock) {
+        this.lock = lock;
+    }
 }

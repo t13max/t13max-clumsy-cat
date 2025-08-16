@@ -11,8 +11,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class UuidUtils {
 
     //临时写一个
-    private final static AtomicLong atomicLong = new AtomicLong();
+    private final static AtomicLong atomicLong = new AtomicLong(1000);
 
+    //临时的 后续优化
     public static long getNextUuid() {
         return atomicLong.getAndIncrement();
     }

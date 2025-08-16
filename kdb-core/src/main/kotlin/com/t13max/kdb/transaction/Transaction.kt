@@ -1,14 +1,13 @@
 package com.t13max.kdb.transaction
 
 import com.t13max.kdb.bean.IData
-import com.t13max.kdb.executor.AutoSaveExecutor
 import com.t13max.kdb.lock.LockCache
 import com.t13max.kdb.lock.RecordLock
-import com.t13max.kdb.log.LogKey
-import com.t13max.kdb.utils.CoroutineLocal
 import com.t13max.kdb.utils.Log
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.Runnable
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -18,48 +17,52 @@ import kotlin.coroutines.coroutineContext
  * @author t13max
  * @since 16:50 2025/7/9
  */
-class Transaction {
+class Transaction(private val transactionId: Long) {
 
     companion object {
-        // 最大分段数
-        val transactionLocal = CoroutineLocal { Transaction() }
 
-        suspend fun current(): Transaction {
-            return transactionLocal.get()
+        //协程事务集合
+        private val transactionMap = ConcurrentHashMap<Long, Transaction>()
+
+        private suspend fun coroutineId(): Long {
+            return coroutineContext[TransactionIdKey]?.id
+                ?: throw IllegalStateException("Coroutine does not have a TransactionId")
         }
 
-        fun current(context: CoroutineContext): Transaction {
-            return transactionLocal.get(context)
+        suspend fun current(): Transaction? {
+            return transactionMap[coroutineId()]
         }
 
-        suspend fun create(): Transaction {
-            var transaction = current()
-            if (transaction == null) {
-                val ctx = coroutineContext
-                transaction = Transaction()
-                transactionLocal.update(transaction, ctx)
-            }
-            return transaction
+        suspend fun create(transactionId: Long): Transaction {
+            val tx = Transaction(transactionId)
+            transactionMap[transactionId] = tx
+            return tx
         }
 
         suspend fun destroy() {
-            val ctx = coroutineContext
-            transactionLocal.update(null, ctx)
+            transactionMap.remove(coroutineId())
         }
+
+        // 每次事务 一个id
+        object TransactionIdKey : CoroutineContext.Key<TransactionIdElement>
+        class TransactionIdElement(val id: Long) : AbstractCoroutineContextElement(TransactionIdKey)
     }
 
     //事务缓存
-    private val recordCache = mutableMapOf<Class<out IData>, MutableMap<Long, Record<out IData>>>()
+    private val transactionCache = mutableMapOf<Class<out IData>, MutableMap<Long, IData>>()
 
     //当前事务持有的锁
     private val lockCache = mutableListOf<RecordLock>()
 
-    //检查点
-    private val savepoint = Savepoint()
+    //提交后执行任务
+    private val whileCommitTaskList = mutableListOf<Runnable>()
+
+    //回滚后执行的任务
+    private val whileRollbackTaskList = mutableListOf<Runnable>()
 
     //添加持有的锁
     suspend fun addLock(lock: RecordLock) {
-
+        this.lockCache.add(lock)
     }
 
     /**
@@ -70,23 +73,32 @@ class Transaction {
      */
     suspend fun perform(procedure: Procedure) {
 
+        val job = coroutineContext[Job]
+
         try {
 
-            val job = currentJob()
-
+            //flush锁
             LockCache.flushLock().readLock(job)
 
+            //执行call
             if (procedure.call()) {
-                realCommit()
+                //成功 提交后逻辑
+                commitAfter()
             } else {
-                lastRollback()
+                //失败了 回滚后逻辑
+                rollbackAfter()
             }
         } catch (throwable: Throwable) {
-            Log.TRANSACT.error("perform exception! throwable={}", throwable)
-            lastRollback()
+            //异常了 回滚
+            Log.TRANSACT.error("perform exception!", throwable)
+            rollbackAfter()
         } finally {
+            //finally
             finish(procedure)
-            LockCache.flushLock().readUnlock(procedure.getJob())
+            //释放读锁
+            LockCache.flushLock().readUnlock(job)
+            //销毁
+            destroy()
         }
     }
 
@@ -97,7 +109,12 @@ class Transaction {
      * @Date 11:01 2025/7/12
      */
     suspend fun rollback() {
-
+        Log.TRANSACT.info("rollback!  transactionId={}", transactionId)
+        for (valueMap in transactionCache.values) {
+            for (data in valueMap.values) {
+                data.rollback()
+            }
+        }
     }
 
     /**
@@ -107,7 +124,12 @@ class Transaction {
      * @Date 11:01 2025/7/12
      */
     suspend fun commit() {
-
+        Log.TRANSACT.info("commit!  transactionId={}", transactionId)
+        for (valueMap in transactionCache.values) {
+            for (data in valueMap.values) {
+                data.commit()
+            }
+        }
     }
 
     /**
@@ -116,8 +138,10 @@ class Transaction {
      * @Author t13max
      * @Date 11:01 2025/7/12
      */
-    suspend fun realCommit() {
-        savepoint.commit()
+    suspend fun commitAfter() {
+        for (runnable in whileCommitTaskList) {
+            runTask(runnable)
+        }
     }
 
     /**
@@ -126,8 +150,45 @@ class Transaction {
      * @Author t13max
      * @Date 11:01 2025/7/12
      */
-    suspend fun lastRollback() {
-        savepoint.rollback()
+    suspend fun rollbackAfter() {
+        for (runnable in whileRollbackTaskList) {
+            runTask(runnable)
+        }
+    }
+
+    /**
+     * 执行任务
+     *
+     * @Author t13max
+     * @Date 13:43 2025/8/16
+     */
+    fun runTask(task: Runnable) {
+        try {
+            task.run()
+        } catch (exception: Exception) {
+            //异常处理
+            Log.TRANSACT.error("runTask error! transactionId={}, task={}", transactionId, task)
+        }
+    }
+
+    /**
+     * 提交后执行
+     *
+     * @Author t13max
+     * @Date 13:44 2025/8/16
+     */
+    fun executeWhileCommit(task: Runnable) {
+        whileCommitTaskList.add(task)
+    }
+
+    /**
+     * 回滚后执行
+     *
+     * @Author t13max
+     * @Date 13:44 2025/8/16
+     */
+    fun executeWhileRollback(task: Runnable) {
+        whileRollbackTaskList.add(task)
     }
 
     /**
@@ -136,37 +197,46 @@ class Transaction {
      * @Author t13max
      * @Date 11:03 2025/7/12
      */
-    private fun finish(procedure: Procedure) {
+    private suspend fun finish(procedure: Procedure) {
 
         //移除事务
-        TransactionExecutor.removeTransaction(procedure.getJob())
+        TransactionExecutor.removeTransaction(transactionId)
 
-        //把事务缓存里的数据 变动的 扔进异步存库
+        //释放锁
+        for (lock in lockCache) {
+            lock.unlock()
+        }
 
-        val recordList: List<Record<IData>> = recordCache.values
+        //异步存库 如果有的话...
+
+        /*val recordList: List<Record<IData>> = recordCache.values
             .flatMap { it.values }
             .map { it as Record<IData> }
 
-        AutoSaveExecutor.batchRecordChange(recordList)
+        AutoSaveExecutor.batchRecordChange(recordList)*/
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <V : IData> addCache(clazz: Class<V>, record: Record<V>) {
-        val map = recordCache.getOrPut(clazz) { mutableMapOf() }
-        (map as MutableMap<Long, Record<V>>)[record.id] = record
+    /**
+     * 添加到事务缓存
+     *
+     * @Author t13max
+     * @Date 13:44 2025/8/16
+     */
+    fun <V : IData> addCache(clazz: Class<V>, value: V) {
+        val cacheMap = transactionCache.getOrPut(clazz) { mutableMapOf<Long, IData>() }
+        cacheMap[value.id] = value
     }
 
-    @Suppress("UNCHECKED_CAST")
+    /**
+     * 从事务缓存获取数据
+     *
+     * @Author t13max
+     * @Date 13:44 2025/8/16
+     */
     fun <V : IData> getCache(clazz: Class<V>, id: Long): V? {
-        val map = recordCache[clazz] ?: return null
-        return (map[id] as? Record<V>)?.value
+        val map = transactionCache[clazz] ?: return null
+        @Suppress("UNCHECKED_CAST")
+        return map[id] as? V
     }
 
-    suspend fun currentJob(): Job? {
-        return currentCoroutineContext()[Job]
-    }
-
-    fun addLog(logKey: LogKey) {
-        savepoint.addLog(logKey)
-    }
 }

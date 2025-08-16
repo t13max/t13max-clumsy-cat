@@ -22,9 +22,6 @@ public class Kdb {
     //配置
     private KdbConf CONF;
 
-    //表集合
-    private Tables tables;
-
     //串行执行器
     private SerialExecutor serialExecutor;
 
@@ -55,7 +52,7 @@ public class Kdb {
             loadConf();
 
             //表集合
-            tables = new Tables(CONF);
+            Tables.inst().start(CONF);
 
             //串行执行器
             serialExecutor = new SerialExecutor();
@@ -82,7 +79,7 @@ public class Kdb {
 
             //挨个shutdown 是不是有问题 一个异常 后面都没法执行?
 
-            tables.shutdown();
+            Tables.inst().shutdown();
 
             serialExecutor.shutdown();
 

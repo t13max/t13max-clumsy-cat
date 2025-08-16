@@ -1,6 +1,9 @@
 package com.t13max.kdb.bean;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 自动存库回滚 对象
  *
@@ -10,6 +13,8 @@ package com.t13max.kdb.bean;
 public abstract class AutoData implements IData {
 
     private volatile byte _option;
+
+    protected Map<String, Object> _oldValueMap;
 
     protected IData parent;
 

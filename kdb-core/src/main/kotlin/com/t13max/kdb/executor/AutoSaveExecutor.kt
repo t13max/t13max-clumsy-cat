@@ -21,18 +21,18 @@ class AutoSaveExecutor() {
 
     companion object {
 
-        val changeChannel: Channel<Record<out IData>> = Channel(Channel.Factory.UNLIMITED)
+        val changeChannel: Channel<IData> = Channel(Channel.Factory.UNLIMITED)
 
         private val saveMap = mutableMapOf<State, IData>()
 
-        fun <T : IData> recordChange(record: Record<T>) {
+        fun <V : IData> recordChange(record:V) {
             //提交到channel
             Utils.Companion.autoSaveScope.launch {
                 changeChannel.send(record)
             }
         }
 
-        fun <T : IData> batchRecordChange(recordList: List<Record<T>>) {
+        fun <V : IData> batchRecordChange(recordList: List<V>) {
             //提交到channel
             Utils.Companion.autoSaveScope.launch {
                 for (record in recordList) {
