@@ -1,0 +1,34 @@
+# 缓存
+cache:
+  #开启
+  open: false
+  #使用哪一种缓存
+  instance: CoroutineSafeCache
+
+# 自动存库
+auto:
+  #开启
+  open: false
+  #自动存库间隔
+  internal: 60000
+
+#持久层
+storage:
+  # 使用哪一种
+  instance: RegisterStorage
+
+#实体类
+data:
+  #路径
+  path: com.t13max.kdb.data
+
+# 表列表
+tables:
+  - name: MemberTable
+    value: MemberData
+    comment: 玩家表
+    lock: member
+  - name: RoomTable
+    value: RoomData
+    comment: 房间表
+    lock: room
