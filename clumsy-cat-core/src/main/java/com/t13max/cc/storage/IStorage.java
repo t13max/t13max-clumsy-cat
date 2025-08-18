@@ -1,5 +1,6 @@
 package com.t13max.cc.storage;
 
+import com.t13max.cc.bean.AutoData;
 import com.t13max.cc.bean.IData;
 
 import java.util.List;
@@ -14,23 +15,23 @@ import java.util.List;
 public interface IStorage {
 
     //查询所有
-    <T extends IData> List<T> findAll(Class<T> clazz);
+    <T extends AutoData> List<T> findAll(Class<T> clazz);
 
     //根据外键查询列表
-    <T extends IData> List<T> findByForeignId(Class<T> clazz, long foreignId, String foreignName);
+    <T extends AutoData> List<T> findByForeignId(Class<T> clazz, long foreignId, String foreignName);
 
     //根据唯一id查询
-    <T extends IData> T findById(Class<T> clazz, long id);
+    <T extends AutoData> T findById(Class<T> clazz, long id);
 
     //存
-    <T extends IData> void save(Class<T> clazz, T t);
+    <T extends AutoData> void save(Class<T> clazz, AutoData t);
 
     //批量存
-    <T extends IData> void batchSave(Class<T> clazz, List<T> dataList);
+    <T extends AutoData> void batchSave(Class<T> clazz, List<AutoData> dataList);
 
     //删除
-    <T extends IData> void delete(Class<T> clazz, long id);
+    <T extends AutoData> void delete(Class<T> clazz, long id);
 
     //批量删
-    <T extends IData> void batchDelete(Class<T> clazz, List<Long> ids);
+    <T extends AutoData> void batchDelete(Class<T> clazz, List<Long> ids);
 }

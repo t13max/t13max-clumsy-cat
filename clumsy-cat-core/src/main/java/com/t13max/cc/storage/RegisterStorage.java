@@ -1,5 +1,6 @@
 package com.t13max.cc.storage;
 
+import com.t13max.cc.bean.AutoData;
 import com.t13max.cc.bean.IData;
 import com.t13max.cc.utils.Log;
 
@@ -39,23 +40,23 @@ public final class RegisterStorage implements IStorage {
         return INSTANCE;
     }
 
-    public <T extends IData> void registerFunction(Class<T> clazz, Method method, Function<Long, T> function) {
+    public <T extends AutoData> void registerFunction(Class<T> clazz, Method method, Function<Long, T> function) {
         Map<Method, Function<Long, ? extends IData>> methodFunctionMap = findByIdFunctionMap.computeIfAbsent(clazz, k -> new HashMap<>());
         methodFunctionMap.computeIfAbsent(method, k -> function);
     }
 
     @Override
-    public <T extends IData> List<T> findAll(Class<T> clazz) {
+    public <T extends AutoData> List<T> findAll(Class<T> clazz) {
         return List.of();
     }
 
     @Override
-    public <T extends IData> List<T> findByForeignId(Class<T> clazz, long foreignId, String foreignName) {
+    public <T extends AutoData> List<T> findByForeignId(Class<T> clazz, long foreignId, String foreignName) {
         return List.of();
     }
 
     @Override
-    public <T extends IData> T findById(Class<T> clazz, long id) {
+    public <T extends AutoData> T findById(Class<T> clazz, long id) {
         Map<Method, Function<Long, ? extends IData>> methodFunctionMap = findByIdFunctionMap.get(clazz);
         if (methodFunctionMap == null) {
             Log.ENGINE.error("类型未注册, clazz={}", clazz);
@@ -78,22 +79,22 @@ public final class RegisterStorage implements IStorage {
     }
 
     @Override
-    public <T extends IData> void save(Class<T> clazz, T t) {
+    public <T extends AutoData> void save(Class<T> clazz, AutoData t) {
 
     }
 
     @Override
-    public <T extends IData> void batchSave(Class<T> clazz, List<T> dataList) {
+    public <T extends AutoData> void batchSave(Class<T> clazz, List<AutoData> dataList) {
 
     }
 
     @Override
-    public <T extends IData> void delete(Class<T> clazz, long id) {
+    public <T extends AutoData> void delete(Class<T> clazz, long id) {
 
     }
 
     @Override
-    public <T extends IData> void batchDelete(Class<T> clazz, List<Long> ids) {
+    public <T extends AutoData> void batchDelete(Class<T> clazz, List<Long> ids) {
 
     }
 

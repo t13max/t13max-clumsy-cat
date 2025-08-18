@@ -18,7 +18,6 @@ public class SetterEnhancer {
         ClassPool pool = ClassPool.getDefault();
         CtClass ctClass = pool.get(className);
 
-
         // 给所有 set 方法增强
         for (CtMethod method : ctClass.getDeclaredMethods()) {
             if (method.getName().startsWith("set") && method.getParameterTypes().length == 1) {
@@ -27,6 +26,7 @@ public class SetterEnhancer {
                         "  if(this._oldValueMap == null) this._oldValueMap = new java.util.HashMap();" +
                         "  if(!this._oldValueMap.containsKey(\"" + fieldName + "\")) {" +
                         "    this._oldValueMap.put(\"" + fieldName + "\", ($w)this." + fieldName + ");" +
+                        "    this.update();" +
                         "  }" +
                         "  this." + fieldName + " = $1;" +
                         "}";
@@ -56,6 +56,7 @@ public class SetterEnhancer {
         }
 
         rollbackCode.append("_oldValueMap = null;");
+        rollbackCode.append("this.clear();");
         rollbackCode.append("}");
         rollbackCode.append("}");
 

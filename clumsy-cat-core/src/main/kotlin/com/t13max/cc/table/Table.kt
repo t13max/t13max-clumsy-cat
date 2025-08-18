@@ -1,15 +1,20 @@
 package com.t13max.cc.table
 
+import com.t13max.cc.bean.AutoData
+import com.t13max.cc.bean.DataOption
 import com.t13max.cc.bean.IData
 import com.t13max.cc.cache.ITableCache
 import com.t13max.cc.conf.TableConf
 import com.t13max.cc.exception.CCException
+import com.t13max.cc.executor.AutoSaveExecutor
 import com.t13max.cc.lock.LockCache
-import com.t13max.cc.lock.RecordLock
+import com.t13max.cc.lock.ValueLock
 import com.t13max.cc.storage.IStorage
 import com.t13max.cc.transaction.Transaction
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
+import lombok.`val`
 import java.util.Optional
 
 /**
@@ -19,7 +24,7 @@ import java.util.Optional
  * @author t13max
  * @since 18:50 2025/7/8
  */
-open class Table<V : IData>(
+open class Table<V : AutoData>(
     //类型
     private val clazz: Class<V>,
     //配置
@@ -38,13 +43,15 @@ open class Table<V : IData>(
      */
     suspend fun get(id: Long): Optional<V> {
 
-        val lock: RecordLock = LockCache.getLock(tableConf.name, id)
+        val lock: ValueLock = LockCache.getLock(tableConf.name, id)
 
         //加锁执行
         lock.lock()
 
         val current = Transaction.current() ?: throw CCException("Transaction.current()为空")
+
         current.addLock(lock)
+
         try {
             //事务缓存
             var value = current.getCache(clazz, id)
@@ -62,8 +69,8 @@ open class Table<V : IData>(
                         cache.add(value)
                     }
                 }
-                if (value != null){
-                    current.addCache(clazz,value)
+                if (value != null) {
+                    current.addCache(clazz, value)
                 }
             }
 
@@ -75,7 +82,7 @@ open class Table<V : IData>(
 
     suspend fun select(id: Long): V {
 
-        val lock: RecordLock = LockCache.getLock(tableConf.name, id)
+        val lock: ValueLock = LockCache.getLock(tableConf.name, id)
 
         //加锁执行
         lock.lock()
@@ -104,13 +111,17 @@ open class Table<V : IData>(
      */
     suspend fun insert(value: V) {
 
-        val lock: RecordLock = LockCache.getLock(tableConf.name, value.id)
+        val lock: ValueLock = LockCache.getLock(tableConf.name, value.id)
 
         lock.lock()
 
+        val current = Transaction.current() ?: throw CCException("Transaction.current()为空")
         try {
-            cache.add(value)
-            //通知异步存库 如果有
+            //标记
+            DataOption.insert(value)
+            //只加事务缓存
+            current.addCache(clazz, value)
+            //事务提交以后 事务缓存会更新到异步存库
         } finally {
             lock.unlock()
         }
@@ -122,8 +133,23 @@ open class Table<V : IData>(
      * @Author t13max
      * @Date 18:56 2025/7/8
      */
-    suspend fun <V : IData> delete(id: Long) {
-        // 实现删除逻辑
+    suspend fun delete(value: V) {
+        val lock: ValueLock = LockCache.getLock(tableConf.name, value.id)
+
+        lock.lock()
+
+        val current = Transaction.current() ?: throw CCException("Transaction.current()为空")
+
+        try {
+
+            //标记
+            DataOption.delete(value)
+            //只加事务缓存
+            current.removeCache(clazz, value)
+            //事务提交以后 事务缓存会更新到异步存库
+        } finally {
+            lock.unlock()
+        }
     }
 
 }

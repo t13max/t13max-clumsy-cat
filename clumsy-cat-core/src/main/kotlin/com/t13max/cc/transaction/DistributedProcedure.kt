@@ -2,6 +2,7 @@ package com.t13max.cc.transaction
 
 import com.t13max.cc.utils.Log
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * 分布式存储过程
@@ -21,8 +22,7 @@ abstract class DistributedProcedure : Procedure() {
     //提交成功信号
     private val commitSuccess = CompletableDeferred<Boolean>()
 
-    override suspend fun process(): Boolean {
-
+    final override suspend fun process(): Boolean {
 
         try {
             //try
@@ -38,11 +38,13 @@ abstract class DistributedProcedure : Procedure() {
 
         this.trySuccess.complete(true)
 
-        //成功了 等待提交
-        val await = commitSignal.await()
+        //成功了 等待提交 带超时
+        val await = withTimeoutOrNull(10000) {
+            commitSignal.await()
+        }
 
         //结果是false 也就是取消
-        if (!await) {
+        if (await == null || !await) {
             try {
                 //尝试取消
                 if (cancel()) {

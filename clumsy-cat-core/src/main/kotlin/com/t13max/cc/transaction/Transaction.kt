@@ -1,12 +1,14 @@
 package com.t13max.cc.transaction
 
+import com.t13max.cc.bean.AutoData
 import com.t13max.cc.bean.IData
 import com.t13max.cc.executor.AutoSaveExecutor
 import com.t13max.cc.lock.LockCache
-import com.t13max.cc.lock.RecordLock
+import com.t13max.cc.lock.ValueLock
 import com.t13max.cc.utils.Log
 import com.t13max.cc.utils.Utils
 import com.t13max.cc.utils.UuidUtils
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
@@ -26,6 +28,9 @@ class Transaction(private val transactionId: Long) {
 
         //协程事务集合
         private val transactionMap = ConcurrentHashMap<Long, Transaction>()
+
+        //分布式事务
+        private val distributedMap = ConcurrentHashMap<Long, DistributedProcedure>()
 
         private suspend fun coroutineId(): Long {
             return coroutineContext[TransactionIdKey]?.id
@@ -60,16 +65,35 @@ class Transaction(private val transactionId: Long) {
             submit(procedure)
         }
 
+        fun distributedCancel(transactionId: Long) {
+            val procedure = distributedMap.remove(transactionId)
+            if (procedure == null) {
+                Log.TRANSACT.error("distributed cancel procedure not exist, transactionId={}", transactionId)
+                return
+            }
+            procedure.notifySignal(false)
+        }
+
+        fun distributedCommit(transactionId: Long): CompletableDeferred<Boolean>? {
+            val procedure = distributedMap.remove(transactionId)
+            if (procedure == null) {
+                Log.TRANSACT.error("distributed commit procedure not exist, transactionId={}", transactionId)
+                return null;
+            }
+            procedure.notifySignal(true)
+            return procedure.commitSuccessDeferred()
+        }
+
         // 每次事务 一个id
         object TransactionIdKey : CoroutineContext.Key<TransactionIdElement>
         class TransactionIdElement(val id: Long) : AbstractCoroutineContextElement(TransactionIdKey)
     }
 
     //事务缓存
-    private val transactionCache = mutableMapOf<Class<out IData>, MutableMap<Long, IData>>()
+    private val transactionCache = mutableMapOf<Class<out AutoData>, MutableMap<Long, AutoData>>()
 
     //当前事务持有的锁
-    private val lockCache = mutableListOf<RecordLock>()
+    private val lockCache = mutableListOf<ValueLock>()
 
     //提交后执行任务
     private val whileCommitTaskList = mutableListOf<suspend () -> Unit>()
@@ -78,7 +102,7 @@ class Transaction(private val transactionId: Long) {
     private val whileRollbackTaskList = mutableListOf<suspend () -> Unit>()
 
     //添加持有的锁
-    suspend fun addLock(lock: RecordLock) {
+    suspend fun addLock(lock: ValueLock) {
         this.lockCache.add(lock)
     }
 
@@ -211,7 +235,7 @@ class Transaction(private val transactionId: Long) {
         for (entry in transactionCache.entries) {
             val clazz = entry.key
             val valueMap = entry.value
-            AutoSaveExecutor.inst().batchRecordChange(valueMap.values)
+            AutoSaveExecutor.inst().batchValueChange(valueMap.values)
         }
     }
 
@@ -221,9 +245,20 @@ class Transaction(private val transactionId: Long) {
      * @Author t13max
      * @Date 13:44 2025/8/16
      */
-    fun <V : IData> addCache(clazz: Class<V>, value: V) {
-        val cacheMap = transactionCache.getOrPut(clazz) { mutableMapOf<Long, IData>() }
+    fun <V : AutoData> addCache(clazz: Class<V>, value: V) {
+        val cacheMap = transactionCache.getOrPut(clazz) { mutableMapOf<Long, AutoData>() }
         cacheMap[value.id] = value
+    }
+
+    /**
+     * 从事务缓存清除
+     *
+     * @Author t13max
+     * @Date 16:59 2025/8/18
+     */
+    fun <V : AutoData> removeCache(clazz: Class<V>, value: V) {
+        val cacheMap = transactionCache[clazz] ?: return
+        cacheMap.remove(value.id)
     }
 
     /**
@@ -232,10 +267,14 @@ class Transaction(private val transactionId: Long) {
      * @Author t13max
      * @Date 13:44 2025/8/16
      */
-    fun <V : IData> getCache(clazz: Class<V>, id: Long): V? {
-        val map = transactionCache[clazz] ?: return null
+    fun <V : AutoData> getCache(clazz: Class<V>, id: Long): V? {
+        val cacheMap = transactionCache[clazz] ?: return null
         @Suppress("UNCHECKED_CAST")
-        return map[id] as? V
+        return cacheMap[id] as? V
+    }
+
+    fun transactionId(): Long {
+        return this.transactionId
     }
 
 }

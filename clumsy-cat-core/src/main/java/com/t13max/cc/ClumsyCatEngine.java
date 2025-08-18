@@ -1,6 +1,7 @@
 package com.t13max.cc;
 
 import com.t13max.cc.bean.AutoData;
+import com.t13max.cc.cache.TableCacheManager;
 import com.t13max.cc.conf.AutoConf;
 import com.t13max.cc.conf.ClumsyCatConf;
 import com.t13max.cc.enhance.SetterEnhancer;
@@ -61,6 +62,11 @@ public class ClumsyCatEngine {
 
             //实体类字节码增强
             dataEnhance();
+
+            if (CONF.getCache().isOpen()) {
+                //初始化表缓存
+                TableCacheManager.Companion.inst().start();
+            }
 
             //初始化存储层
             initStorage();
@@ -127,6 +133,11 @@ public class ClumsyCatEngine {
     public boolean shutdown() {
 
         try {
+
+            if (CONF.getCache().isOpen()) {
+                //初始化表缓存
+                TableCacheManager.Companion.inst().shutdown();
+            }
 
             //挨个shutdown 是不是有问题 一个异常 后面都没法执行?
 

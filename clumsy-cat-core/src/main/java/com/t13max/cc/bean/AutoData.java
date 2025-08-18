@@ -21,7 +21,7 @@ public abstract class AutoData implements IData {
         _option = 0;
     }
 
-    protected byte option() {
+    public byte option() {
         return _option;
     }
 
@@ -33,16 +33,40 @@ public abstract class AutoData implements IData {
         _option = (byte) (_option | 2);
     }
 
+    protected void delete() {
+        _option = (byte) (_option | 4);
+    }
+
+    @Override
     public Option state() {
         byte option = this.option();
         if (Option.INSERT.match(option)) {
-            this.clear();
             return Option.INSERT;
         } else if (Option.UPDATE.match(option)) {
-            this.clear();
             return Option.UPDATE;
+        }else if (Option.DELETE.match(option)) {
+            return Option.DELETE;
         }
         return Option.NONE;
+    }
+
+    //插入数据 标记改变 包级私有
+    static <T extends IData> void insert(T t) {
+        if (t instanceof AutoData autoData) {
+            autoData.insert();
+        }
+    }
+
+    static <T extends IData> void delete(T t) {
+        if (t instanceof AutoData autoData) {
+            autoData.delete();
+        }
+    }
+
+    static <T extends IData> void clear(T t) {
+        if (t instanceof AutoData autoData) {
+            autoData.clear();
+        }
     }
 
 }

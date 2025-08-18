@@ -8,7 +8,14 @@ package com.t13max.cc.bean;
  */
 public enum Option {
 
-    NONE(0), UPDATE(1), INSERT(2), DELETE(4);
+    //无
+    NONE(0),
+    //更新
+    UPDATE(1),
+    //插入
+    INSERT(2),
+    //删除
+    DELETE(4);
 
     public final int code;
 

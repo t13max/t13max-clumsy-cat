@@ -16,7 +16,7 @@ class LockCache {
 
     companion object {
 
-        private val cacheMap = mutableMapOf<String, MutableMap<Long, RecordLock>>()
+        private val cacheMap = mutableMapOf<String, MutableMap<Long, ValueLock>>()
 
         //拿全局唯一锁的锁
         private val lock = Mutex()
@@ -24,7 +24,7 @@ class LockCache {
         //刷库读写锁
         private val flushLock = CoroutineReadWriteLock()
 
-        suspend fun getLock(name: String, id: Long): RecordLock {
+        suspend fun getLock(name: String, id: Long): ValueLock {
 
             lock.lock()
 
@@ -32,7 +32,7 @@ class LockCache {
                 val innerMap = cacheMap.getOrPut(name) { mutableMapOf() }
 
                 return innerMap.getOrPut(id) {
-                    RecordLock(name, ReentrantMutex())
+                    ValueLock(name, ReentrantMutex())
                 }
             } finally {
                 lock.unlock()

@@ -12,6 +12,7 @@ public class EmptyTableCache<V extends IData> extends AbstractTableCache<V> {
 
     private final static EmptyTableCache<?> EMPTY_TABLE_CACHE = new EmptyTableCache<>();
 
+    @SuppressWarnings("unchecked")
     public static <V extends IData> EmptyTableCache<V> emptyTableCache() {
         return (EmptyTableCache<V>)EMPTY_TABLE_CACHE;
     }
@@ -22,7 +23,7 @@ public class EmptyTableCache<V extends IData> extends AbstractTableCache<V> {
     }
 
     @Override
-    public void add(V record) {
+    public void add(V value) {
 
     }
 

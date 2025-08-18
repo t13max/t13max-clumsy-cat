@@ -8,7 +8,7 @@ import ReentrantMutex
  * @author t13max
  * @since 11:41 2025/7/9
  */
-class RecordLock(private val name: String, private val lock: ReentrantMutex) {
+class ValueLock(private val name: String, private val lock: ReentrantMutex) {
 
     suspend fun <T> withLock(block: suspend () -> T): T {
         return lock.withLock { block() }

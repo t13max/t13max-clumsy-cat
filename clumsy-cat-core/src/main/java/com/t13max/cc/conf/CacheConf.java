@@ -15,4 +15,8 @@ public class CacheConf {
 
     private String instance;
 
+    private int expired;
+
+    private long cleanInterval;
+
 }

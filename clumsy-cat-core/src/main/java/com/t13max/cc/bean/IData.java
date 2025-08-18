@@ -20,4 +20,6 @@ public interface IData {
     //回滚
     default void rollback() {
     }
+
+    Option state();
 }

@@ -24,6 +24,7 @@ import kotlin.run
 /**
  * 串行执行器
  * 多个作用域 多个Channel
+ * 里面没有锁保护 与Procedure是冲突的
  *
  * @author t13max
  * @Date 13:53 2025/6/26

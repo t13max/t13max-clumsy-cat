@@ -13,6 +13,7 @@ class PDistributedExample : DistributedProcedure() {
         return PCommitExample().call()
     }
 
-
-
+    override suspend fun cancel(): Boolean {
+        return super.cancel()
+    }
 }

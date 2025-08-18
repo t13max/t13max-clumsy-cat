@@ -1,6 +1,7 @@
 package com.t13max.cc.cache;
 
 import com.t13max.cc.bean.IData;
+import com.t13max.cc.bean.Option;
 
 
 /**
@@ -10,6 +11,11 @@ import com.t13max.cc.bean.IData;
  * @since 10:50 2025/7/8
  */
 public abstract class AbstractTableCache<V extends IData> implements ITableCache<V> {
+
+    //没有状态 可以删除
+    protected boolean tryRemoveValue(V value) {
+        return Option.NONE.match(value.state().code);
+    }
 
 
 }

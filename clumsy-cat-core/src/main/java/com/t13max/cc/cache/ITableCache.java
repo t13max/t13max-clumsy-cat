@@ -15,7 +15,7 @@ public interface ITableCache<V extends IData> {
     V get(long id);
 
     //添加一条记录
-    void add(V record);
+    void add(V value);
 
     //移除一条记录
     V remove(long id);

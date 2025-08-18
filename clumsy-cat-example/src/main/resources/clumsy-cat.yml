@@ -4,6 +4,8 @@ cache:
   open: false
   #使用哪一种缓存
   instance: CoroutineSafeCache
+  #缓存过期时间
+  expired: 60000
 
 # 自动存库
 auto:
@@ -11,6 +13,10 @@ auto:
   open: false
   #自动存库间隔
   internal: 60000
+  #清理间隔
+  cleanInterval: 10000
+  # 一批的数量
+  batchCount: 1000
 
 #持久层
 storage:

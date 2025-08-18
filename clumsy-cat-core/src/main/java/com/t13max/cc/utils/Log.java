@@ -12,4 +12,5 @@ public class Log {
     public static Logger SERIAL = LogManager.getLogger("SERIAL");
     public static Logger TRANSACT = LogManager.getLogger("TRANSACT");
     public static Logger ENGINE = LogManager.getLogger("ENGINE");
+    public static Logger STORAGE = LogManager.getLogger("ENGINE");
 }

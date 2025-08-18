@@ -10,7 +10,9 @@ public class AutoConf {
 
     private boolean open;
 
-    private int internal;
+    private long internal;
+
+    private int batchCount;
 
     public boolean isOpen() {
         return open;
@@ -20,11 +22,20 @@ public class AutoConf {
         this.open = open;
     }
 
-    public int getInternal() {
+    public long getInternal() {
         return internal;
     }
 
-    public void setInternal(int internal) {
+    public void setInternal(long internal) {
         this.internal = internal;
     }
+
+    public int getBatchCount() {
+        return batchCount;
+    }
+
+    public void setBatchCount(int batchCount) {
+        this.batchCount = batchCount;
+    }
+
 }
