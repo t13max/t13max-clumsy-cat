@@ -43,7 +43,7 @@ open class Table<V : AutoData>(
      */
     suspend fun get(id: Long): Optional<V> {
 
-        val lock: ValueLock = LockCache.getLock(tableConf.name, id)
+        val lock: ValueLock = LockCache.getLock(tableConf.lock, id)
 
         //加锁执行
         lock.lock()
@@ -82,7 +82,7 @@ open class Table<V : AutoData>(
 
     suspend fun select(id: Long): V {
 
-        val lock: ValueLock = LockCache.getLock(tableConf.name, id)
+        val lock: ValueLock = LockCache.getLock(tableConf.lock, id)
 
         //加锁执行
         lock.lock()
@@ -111,7 +111,7 @@ open class Table<V : AutoData>(
      */
     suspend fun insert(value: V) {
 
-        val lock: ValueLock = LockCache.getLock(tableConf.name, value.id)
+        val lock: ValueLock = LockCache.getLock(tableConf.lock, value.id)
 
         lock.lock()
 
@@ -134,7 +134,7 @@ open class Table<V : AutoData>(
      * @Date 18:56 2025/7/8
      */
     suspend fun delete(value: V) {
-        val lock: ValueLock = LockCache.getLock(tableConf.name, value.id)
+        val lock: ValueLock = LockCache.getLock(tableConf.lock, value.id)
 
         lock.lock()
 

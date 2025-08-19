@@ -98,7 +98,6 @@ class AutoSaveExecutor() {
                 Option.NONE -> {
                     continue
                 }
-
                 Option.UPDATE -> {
                     val list = updateMap.computeIfAbsent(copyData.javaClass) { ArrayList() }
                     list.add(copyData)
@@ -229,7 +228,7 @@ class AutoSaveExecutor() {
                 //存库
                 save()
 
-                delay(auto.internal) // 每秒执行一次
+                delay(auto.interval) // 每秒执行一次
             }
         }
     }

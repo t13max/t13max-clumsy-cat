@@ -1,17 +1,16 @@
 package com.t13max.cc.storage;
 
 import com.t13max.cc.bean.AutoData;
-import com.t13max.cc.bean.IData;
 
 import java.util.List;
 
 /**
- * MongoDB存储层
+ * MySQL存储层
  *
  * @author t13max
  * @since 18:50 2025/7/15
  */
-public class MongoStorage implements IStorage {
+public class MySqlStorage implements IStorage {
 
 
     @Override

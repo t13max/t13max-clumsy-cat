@@ -11,6 +11,13 @@ import java.util.List;
  */
 public class ClumsyCatConf {
 
+    //锁并发
+    private int concurrencyLevel;
+    //实体类路径
+    private String dataPath;
+    //表路径
+    private String tablePath;
+
     //缓存相关配置
     private CacheConf cache;
 
@@ -20,11 +27,32 @@ public class ClumsyCatConf {
     //存储层配置
     private StorageConf storage;
 
-    //实体类相关配置
-    private DataConf data;
-
     //表配置 表名->配置
     private List<TableConf> tables;
+
+    public int getConcurrencyLevel() {
+        return concurrencyLevel;
+    }
+
+    public void setConcurrencyLevel(int concurrencyLevel) {
+        this.concurrencyLevel = concurrencyLevel;
+    }
+
+    public String getDataPath() {
+        return dataPath;
+    }
+
+    public void setDataPath(String dataPath) {
+        this.dataPath = dataPath;
+    }
+
+    public String getTablePath() {
+        return tablePath;
+    }
+
+    public void setTablePath(String tablePath) {
+        this.tablePath = tablePath;
+    }
 
     public CacheConf getCache() {
         return cache;
@@ -50,13 +78,6 @@ public class ClumsyCatConf {
         this.storage = storage;
     }
 
-    public DataConf getData() {
-        return data;
-    }
-
-    public void setData(DataConf data) {
-        this.data = data;
-    }
 
     public List<TableConf> getTables() {
         return tables;

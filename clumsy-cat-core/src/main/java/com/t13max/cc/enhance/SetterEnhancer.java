@@ -88,26 +88,4 @@ public class SetterEnhancer {
         return assignCode;
     }
 
-    // 测试用例
-    public static void main(String[] args) throws Exception {
-        Class<?> enhanced = enhance("com.example.MemberData");
-        Object obj = enhanced.getDeclaredConstructor().newInstance();
-
-        Method setName = enhanced.getMethod("setName", String.class);
-        Method getName = enhanced.getMethod("getName");
-
-        setName.invoke(obj, "Alice");
-        System.out.println("Name = " + getName.invoke(obj));
-
-        Method rollback = enhanced.getMethod("rollback");
-        Method commit = enhanced.getMethod("commit");
-
-        setName.invoke(obj, "Bob");
-        System.out.println("修改后 Name = " + getName.invoke(obj));
-
-        rollback.invoke(obj);
-        System.out.println("rollback 后 Name = " + getName.invoke(obj));
-
-        commit.invoke(obj);
-    }
 }

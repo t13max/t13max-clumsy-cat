@@ -1,8 +1,9 @@
 package com.t13max.cc.lock
 
 import ReentrantMutex
+import WeakConcurrentMap
 import com.t13max.cc.utils.CoroutineReadWriteLock
-import kotlinx.coroutines.sync.Mutex
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 锁缓存
@@ -16,27 +17,15 @@ class LockCache {
 
     companion object {
 
-        private val cacheMap = mutableMapOf<String, MutableMap<Long, ValueLock>>()
-
-        //拿全局唯一锁的锁
-        private val lock = Mutex()
+        //外层ConcurrentHashMap 竞争不激烈 就是路由 里面是弱引用并发集合 分段锁
+        private val cacheMap = ConcurrentHashMap<String, WeakConcurrentMap<Long, ValueLock>>()
 
         //刷库读写锁
         private val flushLock = CoroutineReadWriteLock()
 
         suspend fun getLock(name: String, id: Long): ValueLock {
-
-            lock.lock()
-
-            try {
-                val innerMap = cacheMap.getOrPut(name) { mutableMapOf() }
-
-                return innerMap.getOrPut(id) {
-                    ValueLock(name, ReentrantMutex())
-                }
-            } finally {
-                lock.unlock()
-            }
+            val lockMap = cacheMap.computeIfAbsent(name) { WeakConcurrentMap { ValueLock(name, ReentrantMutex()) } }
+            return lockMap.get(id)
         }
 
         fun flushLock(): CoroutineReadWriteLock {

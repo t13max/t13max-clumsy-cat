@@ -28,30 +28,24 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-
-
-        memberDataMap.put(1L, new MemberData(1L, "member xxx"));
-        roomDataHashMap.put(2L, new RoomData(2L, "room xxxxxx"));
-
-
-        RegisterStorage registerStorage = RegisterStorage.inst();
-        registerStorage.registerFunction(MemberData.class, RegisterStorage.Method.FIND_BY_ID, memberDataMap::get);
-        registerStorage.registerFunction(RoomData.class, RegisterStorage.Method.FIND_BY_ID, roomDataHashMap::get);
-
-
+        //启动!
         if (!ClumsyCatEngine.inst().start()) {
 
             System.exit(0);
+            return;
         }
 
-        Map<String, TableConf> confMap = new HashMap<>();
-        for (TableConf tableConf : ClumsyCatEngine.inst().getConf().getTables()) {
-            confMap.put(tableConf.getName(), tableConf);
-        }
+        //注册storage操作
+        RegisterStorage registerStorage = RegisterStorage.inst();
+        registerStorage.registerFindByIdFunction(MemberData.class, memberDataMap::get);
+        registerStorage.registerFindByIdFunction(RoomData.class, roomDataHashMap::get);
 
-        Tables.inst().putTable("MemberTable", new MemberTable(confMap.get("MemberTable"), EmptyTableCache.emptyTableCache(), registerStorage));
-        Tables.inst().putTable("RoomTable", new RoomTable(confMap.get("RoomTable"), EmptyTableCache.emptyTableCache(), registerStorage));
 
+        //模拟数据库
+        memberDataMap.put(1L, new MemberData(1L, "member xxx"));
+        roomDataHashMap.put(2L, new RoomData(2L, "room xxxxxx"));
+
+        //测试存储过程
         new PExample(1L, 2L).submit();
 
 

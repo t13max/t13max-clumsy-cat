@@ -4,6 +4,7 @@ import com.t13max.cc.table.MemberTable
 import com.t13max.cc.table.RoomTable
 import com.t13max.cc.transaction.Procedure
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 /**
@@ -16,14 +17,14 @@ class PExample(private val uid: Long, private val roomId: Long) : Procedure() {
     override suspend fun process(): Boolean {
 
         //要保证获取顺序 防止死锁
-        val memberDataOp = MemberTable.get(uid)
+        val memberDataOp = MemberTable.inst().get(uid)
         if (memberDataOp.isEmpty) {
             return false
         }
 
         val memberData = memberDataOp.get()
 
-        val roomDataOp = RoomTable.get(roomId)
+        val roomDataOp = RoomTable.inst().get(roomId)
         if (roomDataOp.isEmpty) {
             return false
         }

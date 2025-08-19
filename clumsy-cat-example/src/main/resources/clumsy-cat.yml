@@ -1,9 +1,17 @@
+
+# 锁并发
+concurrencyLevel: 16
+# 表路径
+dataPath: com.t13max.cc.data
+# 实体类路径
+tablePath: com.t13max.cc.table
+
 # 缓存
 cache:
   #开启
   open: false
   #使用哪一种缓存
-  instance: CoroutineSafeCache
+  instance: DefaultTableCache
   #缓存过期时间
   expired: 60000
 
@@ -12,7 +20,7 @@ auto:
   #开启
   open: false
   #自动存库间隔
-  internal: 60000
+  interval: 60000
   #清理间隔
   cleanInterval: 10000
   # 一批的数量
@@ -22,11 +30,6 @@ auto:
 storage:
   # 使用哪一种
   instance: RegisterStorage
-
-#实体类
-data:
-  #路径
-  path: com.t13max.cc.data
 
 # 表列表
 tables:

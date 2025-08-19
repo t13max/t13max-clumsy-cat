@@ -17,21 +17,9 @@ class MemberTable(tableConf: TableConf, cache: ITableCache<MemberData>, storage:
 
     companion object {
 
-        suspend fun get(id: Long): Optional<MemberData> {
-            var table = Tables.inst().getTable<MemberData>("MemberTable")
-            var optional = table.get(id)
-            return optional;
-            /*if (optional.isEmpty) {
-                return optional
-            }
-            return Optional.of(AutoDataProxyFactory.createProxy(optional.get()))*/
+        suspend fun inst(): MemberTable {
+            return Tables.inst().getTable<MemberData>("MemberTable") as MemberTable
         }
-
-        suspend fun newData(): MemberData {
-            //插入数据
-            return MemberData()
-        }
-
 
     }
 

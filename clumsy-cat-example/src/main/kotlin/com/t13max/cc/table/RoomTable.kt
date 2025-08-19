@@ -18,21 +18,9 @@ class RoomTable(tableConf: TableConf, cache: ITableCache<RoomData>, storage: ISt
 
     companion object {
 
-        suspend fun get(id: Long): Optional<RoomData> {
-            var table = Tables.inst().getTable<RoomData>("RoomTable")
-            var optional = table.get(id)
-            return optional
-            /*if (optional.isEmpty) {
-                return optional
-            }
-            return Optional.of(AutoDataProxyFactory.createProxy(optional.get()))*/
+        suspend fun inst(): RoomTable {
+            return Tables.inst().getTable<RoomData>("RoomTable") as RoomTable
         }
-
-        suspend fun newData(): MemberData {
-            //插入数据
-            return MemberData()
-        }
-
 
     }
 

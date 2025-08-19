@@ -1,3 +1,4 @@
+import com.t13max.cc.ClumsyCatEngine
 import java.lang.ref.WeakReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -9,13 +10,11 @@ import kotlin.concurrent.withLock
  * @Date 11:51 2025/7/9
  */
 class WeakConcurrentMap<K : Any, V : Any>(
-    // 并发段数量
-    concurrencyLevel: Int = 16,
     // 缺失时如何创建 value 的函数
     private val createValue: (K) -> V
 ) {
     companion object {
-        // 最大分段数
+        // 最大分段数 1 shl 16 = 1 * 2^16 = 65536
         private const val MAX_SEGMENTS = 1 shl 16
     }
 
@@ -29,20 +28,22 @@ class WeakConcurrentMap<K : Any, V : Any>(
     private val segments: Array<Segment>
 
     init {
-        var ssize = 1
-        var sshift = 0
-        // 限制最大值
-        var level = concurrencyLevel.coerceAtMost(MAX_SEGMENTS)
-        while (ssize < level) {
-            ++sshift
-            ssize = ssize shl 1
+
+        var size = 1
+        var shift = 0
+        // 限制最大值 不超过MAX_SEGMENTS
+        var level = ClumsyCatEngine.inst().conf.concurrencyLevel.coerceAtMost(MAX_SEGMENTS)
+        //找到大于等于level的最小2的幂
+        while (size < level) {
+            ++shift
+            size = size shl 1
         }
-        // 计算偏移位
-        segmentShift = 32 - sshift
-        // 掩码
-        segmentMask = ssize - 1
+        // 计算偏移位 根据key的hash定位到哪个segment
+        segmentShift = 32 - shift
+        // 掩码 size是2的幂 size-1一定全是1 掩码快速取模
+        segmentMask = size - 1
         // 初始化每个 Segment
-        segments = Array(ssize) { Segment() }
+        segments = Array(size) { Segment() }
     }
 
     // 获取对应 key 的 value 如果没有就创建
@@ -62,23 +63,27 @@ class WeakConcurrentMap<K : Any, V : Any>(
 
     // 根据 hash 分配 key 所在的 Segment
     private fun segmentFor(key: K): Segment {
+        //hash值
         var h = key.hashCode()
-        h += (h shl 15).xor(0xffffcd7d.toInt()) // 扰动函数
-        h = h xor (h ushr 10)
-        h += (h shl 3)
-        h = h xor (h ushr 6)
-        h += (h shl 2) + (h shl 14)
-        val hash = h xor (h ushr 16) // 最终 hash
-        val index = (hash ushr segmentShift) and segmentMask // 映射到段索引
+        //扰动 分布更均匀
+        val hash = spread(h)
+        // 映射到段索引
+        val index = (hash ushr segmentShift) and segmentMask
         return segments[index]
+    }
+
+    //扰动函数
+    private fun spread(h: Int): Int {
+        return (h xor (h ushr 16)) and 0x7fffffff
     }
 
     // 每段内部实现
     private inner class Segment {
+
         // 段锁
         private val lock = ReentrantLock()
 
-        // 弱引用 map
+        // 弱引用 map todo atb key是强引用 一直没回收
         private val map = mutableMapOf<K, WeakReference<V>>()
 
         // 获取值 如果值已 GC 则创建新值

@@ -1,12 +1,15 @@
 package com.t13max.cc;
 
 import com.t13max.cc.bean.AutoData;
+import com.t13max.cc.cache.ITableCache;
 import com.t13max.cc.cache.TableCacheManager;
 import com.t13max.cc.conf.AutoConf;
 import com.t13max.cc.conf.ClumsyCatConf;
+import com.t13max.cc.conf.TableConf;
 import com.t13max.cc.enhance.SetterEnhancer;
 import com.t13max.cc.executor.AutoSaveExecutor;
 import com.t13max.cc.storage.IStorage;
+import com.t13max.cc.storage.MongoStorage;
 import com.t13max.cc.storage.RegisterStorage;
 import com.t13max.cc.table.Tables;
 import com.t13max.cc.utils.Log;
@@ -14,6 +17,7 @@ import com.t13max.cc.utils.PackageUtil;
 import lombok.Getter;
 import org.yaml.snakeyaml.Yaml;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,7 +38,6 @@ public class ClumsyCatEngine {
     private ClumsyCatConf CONF;
 
     //数据存储层接口
-    @Getter
     private IStorage storage;
 
     /**
@@ -101,6 +104,12 @@ public class ClumsyCatEngine {
             case "RegisterStorage" -> {
                 this.storage = RegisterStorage.inst();
             }
+            case "MongoStorage" -> {
+                this.storage = new MongoStorage();
+            }
+            case "MySQLStorage" -> {
+
+            }
             default -> {
                 Log.ENGINE.error("存储层未实现");
             }
@@ -114,13 +123,10 @@ public class ClumsyCatEngine {
      * @Date 18:28 2025/8/16
      */
     private void dataEnhance() throws Exception {
-        String path = CONF.getData().getPath();
-        Set<Class<?>> scan = PackageUtil.scan(path);
-        for (Class<?> clazz : scan) {
-            if (!AutoData.class.isAssignableFrom(clazz)) {
-                continue;
-            }
-            SetterEnhancer.enhance(clazz.getName());
+        String path = CONF.getDataPath();
+        List<TableConf> tables = CONF.getTables();
+        for (TableConf tableConf : tables) {
+            SetterEnhancer.enhance(path + "." + tableConf.getValue());
         }
     }
 
@@ -160,6 +166,10 @@ public class ClumsyCatEngine {
      */
     public ClumsyCatConf getConf() {
         return CONF;
+    }
+
+    public IStorage getStorage() {
+        return storage;
     }
 
     /**
