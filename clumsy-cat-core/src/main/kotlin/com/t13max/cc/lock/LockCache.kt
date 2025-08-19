@@ -7,8 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 锁缓存
- * 简单实现 未来可优化为弱引用并发集合
- * 锁分段
+ * todo atb 死锁检测 打断死锁
  *
  * @author t13max
  * @since 11:48 2025/7/9

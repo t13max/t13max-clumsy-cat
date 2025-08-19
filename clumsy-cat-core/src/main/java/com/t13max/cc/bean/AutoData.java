@@ -5,6 +5,7 @@ import java.util.Map;
 
 /**
  * 自动存库回滚 对象
+ * todo atb 引用类型支持
  *
  * @author t13max
  * @since 15:28 2025/7/15
@@ -44,7 +45,7 @@ public abstract class AutoData implements IData {
             return Option.INSERT;
         } else if (Option.UPDATE.match(option)) {
             return Option.UPDATE;
-        }else if (Option.DELETE.match(option)) {
+        } else if (Option.DELETE.match(option)) {
             return Option.DELETE;
         }
         return Option.NONE;

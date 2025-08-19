@@ -1,7 +1,15 @@
 package com.t13max.cc.utils;
+
 import java.lang.reflect.*;
 import java.util.*;
 
+/**
+ * 深拷贝工具类
+ * todo atb 优化一下 高效反射
+ *
+ * @Author t13max
+ * @Date 12:57 2025/8/19
+ */
 public class DeepCopyUtil {
 
     public static <T> T deepCopy(T original) {
