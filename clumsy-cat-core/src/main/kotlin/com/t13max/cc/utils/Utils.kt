@@ -31,5 +31,8 @@ class Utils {
         //表缓存
         val tableCacheScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
+        //通用调度器
+        val commonScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     }
 }

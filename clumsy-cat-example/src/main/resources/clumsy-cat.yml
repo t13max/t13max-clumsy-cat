@@ -1,6 +1,10 @@
 
 # 锁并发
 concurrencyLevel: 16
+# 死锁检测开关
+deadLockDetectOpen: true
+# 死锁检测间隔
+deadLockDetectInterval: 60000
 # 表路径
 dataPath: com.t13max.cc.data
 # 实体类路径

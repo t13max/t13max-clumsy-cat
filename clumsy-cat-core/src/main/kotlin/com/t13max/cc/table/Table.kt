@@ -11,6 +11,7 @@ import com.t13max.cc.lock.LockCache
 import com.t13max.cc.lock.ValueLock
 import com.t13max.cc.storage.IStorage
 import com.t13max.cc.transaction.Transaction
+import com.t13max.cc.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -60,7 +61,7 @@ open class Table<V : AutoData>(
                 value = cache.get(id)
                 if (value == null) {
                     //IO操作 切换到IO线程执行 这里要不要优化一下专门的IO
-                    value = withContext(Dispatchers.IO) {
+                    value = withContext(Utils.virtualThreadDispatcher) {
                         //持久层
                         val value = storage.findById(clazz, id)
                         value
@@ -90,7 +91,7 @@ open class Table<V : AutoData>(
             var value = cache.get(id)
             if (value == null) {
                 //IO操作 切换到IO线程执行 这里要不要优化一下专门的IO
-                value = withContext(Dispatchers.IO) {
+                value = withContext(Utils.virtualThreadDispatcher) {
                     val value = storage.findById(clazz, id)
                     value
                 }

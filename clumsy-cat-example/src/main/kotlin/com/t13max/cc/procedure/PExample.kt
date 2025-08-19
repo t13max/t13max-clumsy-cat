@@ -3,8 +3,7 @@ package com.t13max.cc.procedure
 import com.t13max.cc.table.MemberTable
 import com.t13max.cc.table.RoomTable
 import com.t13max.cc.transaction.Procedure
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import com.t13max.cc.utils.Utils
 import kotlinx.coroutines.withContext
 
 /**
@@ -43,7 +42,7 @@ class PExample(private val uid: Long, private val roomId: Long) : Procedure() {
     //可以是挂起函数
     private suspend fun sync2DB() {
         //协程等待
-        withContext(Dispatchers.IO) {
+        withContext(Utils.virtualThreadDispatcher) {
             //IO操作
         }
     }

@@ -13,6 +13,10 @@ public class ClumsyCatConf {
 
     //锁并发
     private int concurrencyLevel;
+    //死锁检测开关
+    private boolean deadLockDetectOpen;
+    //死锁检测间隔
+    private long deadLockDetectInterval;
     //实体类路径
     private String dataPath;
     //表路径
@@ -36,6 +40,22 @@ public class ClumsyCatConf {
 
     public void setConcurrencyLevel(int concurrencyLevel) {
         this.concurrencyLevel = concurrencyLevel;
+    }
+
+    public boolean isDeadLockDetectOpen() {
+        return deadLockDetectOpen;
+    }
+
+    public void setDeadLockDetectOpen(boolean deadLockDetectOpen) {
+        this.deadLockDetectOpen = deadLockDetectOpen;
+    }
+
+    public long getDeadLockDetectInterval() {
+        return deadLockDetectInterval;
+    }
+
+    public void setDeadLockDetectInterval(long deadLockDetectInterval) {
+        this.deadLockDetectInterval = deadLockDetectInterval;
     }
 
     public String getDataPath() {
